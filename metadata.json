@@ -1,0 +1,6 @@
+{
+  "name": "Hokkaido Alpine & Flora",
+  "description": "An interactive, beautifully polished itinerary dashboard for a 7-day spring journey through Hokkaido.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
