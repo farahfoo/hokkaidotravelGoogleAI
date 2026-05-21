@@ -11,6 +11,8 @@ export interface Activity {
   img?: string;
   url?: string;
   isCompleted?: boolean;
+  price?: string;
+  hours?: string;
 }
 
 export interface DayTimeline {

@@ -159,8 +159,8 @@ const IconsList = {
 };
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<'itinerary' | 'full-timeline' | 'map' | 'gallery'>('itinerary');
-  const [activeDay, setActiveDay] = useState<number>(1);
+  const [currentTab, setCurrentTab] = useState<'itinerary' | 'map' | 'gallery'>('itinerary');
+  const [activeDay, setActiveDay] = useState<number>(0); // 0 = All Days continuous feed
   const [completedActivities, setCompletedActivities] = useState<string[]>([]);
   const [notes, setNotes] = useState<TripNote[]>([]);
 
@@ -168,6 +168,34 @@ export default function App() {
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [noteTime, setNoteTime] = useState('09:00 AM');
+  const [noteFormDay, setNoteFormDay] = useState<number>(1);
+
+  // Text Scaling Settings
+  const [textSizeScale, setTextSizeScale] = useState<number>(() => {
+    try {
+      const stored = localStorage.getItem('hokkaido_text_size_scale');
+      if (stored) {
+        return parseFloat(stored);
+      }
+      // If mobile width screen on initial render, default to larger text size comfort setting
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        return 1.15;
+      }
+      return 1.0;
+    } catch {
+      return 1.0;
+    }
+  });
+
+  // Scale relative element sizes by updating root font size
+  useEffect(() => {
+    try {
+      localStorage.setItem('hokkaido_text_size_scale', textSizeScale.toString());
+      document.documentElement.style.fontSize = `${textSizeScale * 100}%`;
+    } catch (e) {
+      console.error("Failed to persist text scale", e);
+    }
+  }, [textSizeScale]);
 
   // Load from LocalStorage
   useEffect(() => {
@@ -200,9 +228,11 @@ export default function App() {
     e.preventDefault();
     if (!noteTitle.trim() || !noteContent.trim()) return;
 
+    const targetDay = activeDay === 0 ? noteFormDay : activeDay;
+
     const newNote: TripNote = {
       id: `note-${Date.now()}`,
-      day: activeDay,
+      day: targetDay,
       time: noteTime,
       title: noteTitle,
       content: noteContent,
@@ -234,8 +264,8 @@ export default function App() {
     ? Math.round((currentCompletedCount / totalActivitiesCount) * 100) 
     : 0;
 
-  // Render lists of notes for the current active day
-  const filteredNotes = notes.filter(n => n.day === activeDay);
+  // Render lists of notes for the current active day (or all if activeDay is 0)
+  const filteredNotes = activeDay === 0 ? notes : notes.filter(n => n.day === activeDay);
 
   // Collect packing tips for the selected day based on activities
   const activeDayGears = currentTimelineData.activities
@@ -251,47 +281,84 @@ export default function App() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             
             {/* Branding with Elegant paired serifs */}
-            <div>
+            <div className="shrink-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-brand-primary uppercase bg-brand-primary-bg px-2.5 py-1 rounded-md">
                   ★ SPRING EXPEDITION
                 </span>
-                <span className="text-xs text-brand-text-muted hidden sm:inline">| May 24 - May 30</span>
+                <span className="text-xs text-brand-text-muted hidden sm:inline font-semibold">| May 24 - May 30</span>
               </div>
               <h1 className="font-serif text-2xl sm:text-3.5xl font-bold tracking-tight text-brand-text">
                 Hokkaido Alpine &amp; Flora
               </h1>
             </div>
 
-            {/* Live Statistics / Progression */}
-            <div className="flex items-center gap-4 w-full md:w-auto bg-brand-container-low px-4 py-2.5 rounded-xl border border-brand-outline-variant/30">
-              <div className="grow md:grow-0">
-                <div className="flex justify-between items-center text-xs mb-1 font-bold">
-                  <span className="text-brand-text-muted uppercase tracking-wider text-[10px]">Journey Progress</span>
-                  <span className="text-brand-primary font-mono">{percentageCompleted}%</span>
-                </div>
-                <div className="w-48 sm:w-56 bg-brand-container h-2.5 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percentageCompleted}%` }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className="bg-brand-primary h-full rounded-full"
-                  />
+            {/* Live Statistics & Fluid Font Sizer Controls */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+              {/* Accessibility Font Size Scaling Station */}
+              <div className="flex items-center justify-between bg-slate-50 px-3 py-1.5 rounded-xl border border-brand-outline-variant/30 shrink-0 text-xs shadow-xs">
+                <span className="text-[10px] uppercase tracking-wider text-brand-text-muted font-bold mr-3 whitespace-nowrap">Text Size</span>
+                <div className="flex bg-slate-200/50 p-0.5 rounded-lg border border-slate-200">
+                  <button
+                    onClick={() => setTextSizeScale(1.0)}
+                    title="Normal font size (100%)"
+                    className={`px-3 py-1 text-xs font-extrabold rounded-md cursor-pointer transition-all ${
+                      textSizeScale === 1.0 ? 'bg-white text-brand-primary shadow-xs' : 'text-brand-text-muted hover:text-brand-text'
+                    }`}
+                  >
+                    A
+                  </button>
+                  <button
+                    onClick={() => setTextSizeScale(1.15)}
+                    title="Larger font size (115%)"
+                    className={`px-3 py-1 text-xs font-extrabold rounded-md cursor-pointer transition-all ${
+                      textSizeScale === 1.15 ? 'bg-white text-brand-primary shadow-xs' : 'text-brand-text-muted hover:text-brand-text'
+                    }`}
+                  >
+                    A+
+                  </button>
+                  <button
+                    onClick={() => setTextSizeScale(1.30)}
+                    title="Extra large text comfort setting (130%)"
+                    className={`px-3 py-1 text-xs font-extrabold rounded-md cursor-pointer transition-all ${
+                      textSizeScale === 1.30 ? 'bg-white text-brand-primary shadow-xs' : 'text-brand-text-muted hover:text-brand-text'
+                    }`}
+                  >
+                    A++
+                  </button>
                 </div>
               </div>
-              <div className="border-l border-brand-outline-variant/40 pl-4 text-center">
-                <span className="block text-xs font-bold text-brand-text font-mono leading-none">{currentCompletedCount}/{totalActivitiesCount}</span>
-                <span className="text-[9px] uppercase tracking-wider text-brand-text-muted font-bold block mt-1">Stops Check</span>
+
+              {/* Progress Bar Widget */}
+              <div className="flex items-center gap-4 bg-brand-container-low px-4 py-2.5 rounded-xl border border-brand-outline-variant/30 grow">
+                <div className="grow md:grow-0">
+                  <div className="flex justify-between items-center text-xs mb-1 font-bold">
+                    <span className="text-brand-text-muted uppercase tracking-wider text-[10px]">Journey Progress</span>
+                    <span className="text-brand-primary font-mono">{percentageCompleted}%</span>
+                  </div>
+                  <div className="w-full sm:w-56 bg-brand-container h-2.5 rounded-full overflow-hidden">
+                    <motion.div 
+                      key="progress-bar-movement"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${percentageCompleted}%` }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                      className="bg-brand-primary h-full rounded-full"
+                    />
+                  </div>
+                </div>
+                <div className="border-l border-brand-outline-variant/40 pl-4 text-center">
+                  <span className="block text-xs font-bold text-brand-text font-mono leading-none">{currentCompletedCount}/{totalActivitiesCount}</span>
+                  <span className="text-[9px] uppercase tracking-wider text-brand-text-muted font-bold block mt-1">Stops Check</span>
+                </div>
               </div>
             </div>
 
           </div>
 
-          {/* Navigation Bar Header Tabs */}
+          {/* Navigation Bar Header Tabs - Consolidated list to avoid duplication */}
           <div className="flex justify-start gap-1 mt-6 border-t border-brand-container/50 pt-3 overflow-x-auto scrollbar-none">
             {[
-              { id: 'itinerary', label: 'Detailed Itinerary', icon: Calendar },
-              { id: 'full-timeline', label: 'Full Journey Timeline', icon: ListTodo },
+              { id: 'itinerary', label: 'Journey Timeline', icon: Calendar },
               { id: 'map', label: 'Alpine Map Tracker', icon: Compass },
               { id: 'gallery', label: 'Photographer Guide', icon: Camera },
             ].map((tab) => {
@@ -321,8 +388,7 @@ export default function App() {
       {/* Main Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <AnimatePresence mode="wait">
-          
-          {/* Detailed Itinerary View */}
+                   {/* Combined Itinerary Feed and Day-Focus View */}
           {currentTab === 'itinerary' && (
             <motion.div
               key="itinerary-view"
@@ -336,70 +402,122 @@ export default function App() {
               {/* Day Selector Sidebar Column */}
               <div className="lg:col-span-4 lg:sticky lg:top-[160px] h-fit space-y-6">
                 
-                {/* Day selector layout */}
+                {/* Day selector layout with Continuous feed option */}
                 <div className="bg-white rounded-2xl border border-brand-container p-5 shadow-xs">
                   <div className="flex items-center gap-1.5 mb-4 text-brand-primary">
                     <ListTodo className="w-4.5 h-4.5" />
                     <h3 className="font-sans text-xs font-bold tracking-widest uppercase">Plan Timeline</h3>
                   </div>
                   
-                  <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mb-4">
-                    {INITIAL_ITINERARY.map((d) => {
-                      const isActive = activeDay === d.day;
-                      const isDayFullyScouted = d.activities.every(act => completedActivities.includes(act.id));
-                      return (
-                        <button
-                          key={d.day}
-                          id={`day-select-${d.day}`}
-                          onClick={() => setActiveDay(d.day)}
-                          className={`aspect-square rounded-xl flex flex-col items-center justify-center relative cursor-pointer group transition-all border ${
-                            isActive
-                              ? 'bg-brand-primary text-white border-brand-primary font-bold shadow-md'
-                              : 'bg-brand-container-low text-brand-text-muted hover:bg-white border-brand-outline-variant/30 hover:border-brand-outline'
-                          }`}
-                        >
-                          <span className="text-[10px] uppercase font-medium leading-none mb-0.5">Day</span>
-                          <span className="text-base sm:text-lg font-mono leading-none font-bold">{d.day}</span>
-                          
-                          {/* Checked indicator */}
-                          {isDayFullyScouted && (
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border border-white flex items-center justify-center">
-                              <span className="w-1.5 h-1.5 bg-white rounded-full" />
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                  <div className="space-y-2.5 mb-4">
+                    {/* All Days Master Feed Trigger */}
+                    <button
+                      onClick={() => setActiveDay(0)}
+                      className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-between cursor-pointer group transition-all border text-xs font-bold ${
+                        activeDay === 0
+                          ? 'bg-brand-primary text-white border-brand-primary shadow-sm'
+                          : 'bg-brand-container-low text-brand-text-muted hover:bg-white border-brand-outline-variant/30 hover:border-brand-primary/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Compass className="w-4 h-4" />
+                        <span>All Days Master Feed</span>
+                      </div>
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${activeDay === 0 ? 'bg-white/20 text-white' : 'bg-slate-200/50 text-slate-700'}`}>
+                        Day 1-7
+                      </span>
+                    </button>
+
+                    {/* Day-by-Day Select Grid */}
+                    <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                      {INITIAL_ITINERARY.map((d) => {
+                        const isActive = activeDay === d.day;
+                        const isDayFullyScouted = d.activities.every(act => completedActivities.includes(act.id));
+                        return (
+                          <button
+                            key={d.day}
+                            id={`day-select-${d.day}`}
+                            onClick={() => {
+                              setActiveDay(d.day);
+                              setNoteFormDay(d.day);
+                            }}
+                            className={`aspect-square rounded-xl flex flex-col items-center justify-center relative cursor-pointer group transition-all border ${
+                              isActive
+                                ? 'bg-brand-primary text-white border-brand-primary font-bold shadow-md'
+                                : 'bg-brand-container-low text-brand-text-muted hover:bg-white border-brand-outline-variant/30 hover:border-brand-outline'
+                            }`}
+                          >
+                            <span className="text-[9px] uppercase font-bold leading-none mb-0.5 select-none md:scale-95">Day</span>
+                            <span className="text-sm font-mono leading-none font-bold">{d.day}</span>
+                            
+                            {/* Checked indicator */}
+                            {isDayFullyScouted && (
+                              <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border border-white flex items-center justify-center">
+                                <span className="w-1.5 h-1.5 bg-white rounded-full" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Dynamic stats of the currently active day */}
                   <hr className="border-brand-outline-variant/30 my-4" />
                   
-                  <div className="space-y-3 font-sans">
-                    <div className="flex items-center gap-3 text-sm">
-                      <MapPin className="w-4.5 h-4.5 text-red-500 shrink-0" />
-                      <div>
-                        <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Sector Area</span>
-                        <span className="text-brand-text font-bold text-xs sm:text-sm">{currentTimelineData.location}</span>
+                  {activeDay === 0 ? (
+                    <div className="space-y-3 font-sans">
+                      <div className="flex items-start gap-3 text-sm">
+                        <MapPin className="w-4.5 h-4.5 text-red-500 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Expedition Path</span>
+                          <span className="text-brand-text font-bold text-xs sm:text-sm">Chitose • Otaru • Sapporo • Biei • Jozankei • Lake Toya</span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-3 text-sm">
-                      <Hotel className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
-                      <div>
-                        <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Stay Accommodation</span>
-                        <span className="text-brand-text font-bold text-xs sm:text-sm">{currentTimelineData.sleep}</span>
+                      <div className="flex items-start gap-3 text-sm">
+                        <Hotel className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Total Accommodations</span>
+                          <span className="text-brand-text font-bold text-xs sm:text-sm">Traditional Ryokan &amp; Scenic Wilderness Stays</span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-3 text-sm">
-                      <Thermometer className="w-4.5 h-4.5 text-amber-600 shrink-0" />
-                      <div>
-                        <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Expected Weather</span>
-                        <span className="text-brand-text text-xs font-semibold leading-relaxed">{currentTimelineData.weather}</span>
+                      <div className="flex items-start gap-3 text-sm">
+                        <Thermometer className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Spring Climate Scale</span>
+                          <span className="text-brand-text text-xs font-semibold leading-relaxed">High temps ranging from 8°C to 18°C</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="space-y-3 font-sans">
+                      <div className="flex items-center gap-3 text-sm">
+                        <MapPin className="w-4.5 h-4.5 text-red-500 shrink-0" />
+                        <div>
+                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Sector Area</span>
+                          <span className="text-brand-text font-bold text-xs sm:text-sm">{currentTimelineData.location}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 text-sm">
+                        <Hotel className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
+                        <div>
+                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Stay Accommodation</span>
+                          <span className="text-brand-text font-bold text-xs sm:text-sm">{currentTimelineData.sleep}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 text-sm">
+                        <Thermometer className="w-4.5 h-4.5 text-amber-600 shrink-0" />
+                        <div>
+                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">Expected Weather</span>
+                          <span className="text-brand-text text-xs font-semibold leading-relaxed">{currentTimelineData.weather}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Packing and Outfit Advisor Column */}
@@ -408,30 +526,62 @@ export default function App() {
                     <Luggage className="w-4.5 h-4.5" />
                     <h4 className="font-sans text-xs font-bold tracking-widest uppercase">Packing &amp; Wear Advisor</h4>
                   </div>
-                  <p className="text-xs text-brand-text-muted leading-relaxed mb-4">
-                    Based on Day {activeDay}'s thermal metrics and visual activities, we recommend wearing:
-                  </p>
                   
-                  {activeDayGears.length > 0 ? (
-                    <div className="space-y-3.5">
-                      {activeDayGears.map((item, idx) => (
-                        <div key={idx} className="bg-white p-3 rounded-xl border border-brand-secondary/15 flex items-start gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="text-xs font-bold text-brand-text block">{item.title}</span>
-                            <span className="text-[11px] font-medium text-brand-secondary-text mt-0.5 block italic">{item.gear}</span>
-                          </div>
+                  {activeDay === 0 ? (
+                    <div className="space-y-3">
+                      <p className="text-xs text-brand-text-muted leading-relaxed mb-1">
+                        General seasonal Hokkaido spring layers checklist (all conditions):
+                      </p>
+                      <div className="bg-white p-3 rounded-xl border border-brand-secondary/15 flex items-start gap-2.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-xs font-bold text-brand-text block">Thermal Warm Layers</span>
+                          <span className="text-[11px] font-medium text-brand-secondary-text mt-0.5 block italic">Needed for altitude peak summits and cold coastal winds</span>
                         </div>
-                      ))}
+                      </div>
+                      <div className="bg-white p-3 rounded-xl border border-brand-secondary/15 flex items-start gap-2.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-xs font-bold text-brand-text block">Traction Hiking Footwear</span>
+                          <span className="text-[11px] font-medium text-brand-secondary-text mt-0.5 block italic">Comfort boots for flower fields and volcanic trails</span>
+                        </div>
+                      </div>
+                      <div className="bg-white p-3 rounded-xl border border-brand-secondary/15 flex items-start gap-2.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-xs font-bold text-brand-text block">Waterproof Active Shells</span>
+                          <span className="text-[11px] font-medium text-brand-secondary-text mt-0.5 block italic">Shield from damp conditions near Blue Pond and rivers</span>
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    <div className="bg-white p-3.5 rounded-xl border border-brand-secondary/15 text-center">
-                      <Info className="w-4.5 h-4.5 text-brand-secondary-text mx-auto mb-1.5" />
-                      <p className="text-[11px] font-bold text-brand-text-muted uppercase">Default Spring Attire</p>
-                      <p className="text-[11px] text-brand-text-muted mt-1 leading-relaxed">
-                        Light windbreaker layers, long pants, and general-purpose comfortable sneakers.
+                    <>
+                      <p className="text-xs text-brand-text-muted leading-relaxed mb-4">
+                        Based on Day {activeDay}'s thermal metrics and expected activities, we recommend wearing:
                       </p>
-                    </div>
+                      
+                      {activeDayGears.length > 0 ? (
+                        <div className="space-y-3.5">
+                          {activeDayGears.map((item, idx) => (
+                            <div key={idx} className="bg-white p-3 rounded-xl border border-brand-secondary/15 flex items-start gap-2.5">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="text-xs font-bold text-brand-text block">{item.title}</span>
+                                <span className="text-[11px] font-medium text-brand-secondary-text mt-0.5 block italic">{item.gear}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-white p-3.5 rounded-xl border border-brand-secondary/15 text-center">
+                          <Info className="w-4.5 h-4.5 text-brand-secondary-text mx-auto mb-1.5" />
+                          <p className="text-[11px] font-bold text-brand-text-muted uppercase">Default Spring Attire</p>
+                          <p className="text-[11px] text-brand-text-muted mt-1 leading-relaxed">
+                            Light windbreaker layers, thermal sweater, durable outdoor trousers, and athletic sneakers.
+                          </p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -440,7 +590,9 @@ export default function App() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-1.5 text-brand-primary">
                       <NotebookPen className="w-4.5 h-4.5" />
-                      <h4 className="font-sans text-xs font-bold tracking-widest uppercase">Travel Pad (Day {activeDay})</h4>
+                      <h4 className="font-sans text-xs font-bold tracking-widest uppercase">
+                        {activeDay === 0 ? 'Travel Pad (Add Observations)' : `Travel Pad (Day ${activeDay})`}
+                      </h4>
                     </div>
                     <span className="bg-brand-primary-bg text-brand-primary-text font-bold font-mono text-[10px] px-2 py-0.5 rounded-md">
                       {filteredNotes.length} LOGS
@@ -452,6 +604,7 @@ export default function App() {
                       <input
                         type="text"
                         placeholder="Log title..."
+                        required
                         value={noteTitle}
                         onChange={e => setNoteTitle(e.target.value)}
                         className="col-span-2 text-xs bg-brand-container-low border border-brand-outline-variant/40 rounded-lg p-2 focus:outline-hidden focus:border-brand-primary transition-all font-semibold"
@@ -468,19 +621,37 @@ export default function App() {
                         <option value="08:00 PM">08:00 PM</option>
                       </select>
                     </div>
-                    <textarea
-                      placeholder="Observation note..."
-                      rows={2}
-                      value={noteContent}
-                      onChange={e => setNoteContent(e.target.value)}
-                      className="w-full text-xs bg-brand-container-low border border-brand-outline-variant/40 rounded-lg p-2 focus:outline-hidden focus:border-brand-primary transition-all font-sans"
-                    />
+
+                    <div className="flex gap-2">
+                      {/* Dropdown for noteDay selection if All Days Master Feed is active */}
+                      {activeDay === 0 && (
+                        <select
+                          value={noteFormDay}
+                          onChange={e => setNoteFormDay(parseInt(e.target.value))}
+                          className="text-[11px] bg-brand-container-low border border-brand-outline-variant/40 rounded-lg p-1.5 px-2.5 focus:outline-hidden font-bold shrink-0 text-brand-primary"
+                        >
+                          {[1, 2, 3, 4, 5, 6, 7].map(d => (
+                            <option key={d} value={d}>Day {d}</option>
+                          ))}
+                        </select>
+                      )}
+                      
+                      <textarea
+                        placeholder="Observation details..."
+                        rows={2}
+                        required
+                        value={noteContent}
+                        onChange={e => setNoteContent(e.target.value)}
+                        className="w-full text-xs bg-brand-container-low border border-brand-outline-variant/40 rounded-lg p-2 focus:outline-hidden focus:border-brand-primary transition-all font-sans"
+                      />
+                    </div>
+
                     <button
                       type="submit"
-                      className="w-full bg-brand-primary hover:bg-brand-primary-light text-white font-bold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      className="w-full bg-brand-primary hover:bg-brand-primary-light text-white font-bold text-xs py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      <Plus className="w-4.5 h-4.5" />
-                      <span>Add Observation</span>
+                      <Plus className="w-4 h-4" />
+                      <span>{activeDay === 0 ? `Add Log to Day ${noteFormDay}` : `Add Observation`}</span>
                     </button>
                   </form>
 
@@ -500,6 +671,11 @@ export default function App() {
                               <span className="bg-slate-400/25 text-slate-800 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-sm">
                                 {note.time}
                               </span>
+                              {activeDay === 0 && (
+                                <span className="bg-brand-primary/10 text-brand-primary font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-sm">
+                                  DAY {note.day}
+                                </span>
+                              )}
                               <span className="text-xs font-bold text-brand-text line-clamp-1">{note.title}</span>
                             </div>
                             <p className="text-[11px] text-brand-text-muted leading-relaxed font-sans font-medium">{note.content}</p>
@@ -517,7 +693,7 @@ export default function App() {
 
                     {filteredNotes.length === 0 && (
                       <p className="text-[10px] text-center italic text-brand-text-muted py-3">
-                        No custom notes for this day. Fill the boxes above to record sights.
+                        No custom notes written yet. Fill the box to log sights.
                       </p>
                     )}
                   </div>
@@ -526,370 +702,348 @@ export default function App() {
               </div>
 
               {/* Main Timeline Column */}
-              <div className="lg:col-span-8 space-y-6">
+              <div className="lg:col-span-8 space-y-8">
                 
-                {/* Header indicator inside column */}
-                <div className="bg-white rounded-2xl border border-brand-container p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
-                  <div>
-                    <span className="text-[10px] font-bold text-brand-primary tracking-widest uppercase">Active Node</span>
-                    <h2 className="font-serif text-3xl font-extrabold text-brand-text tracking-tight mt-1">
-                      Day {currentTimelineData.day}: {currentTimelineData.location}
-                    </h2>
-                    <p className="text-xs text-brand-text-muted font-sans font-bold flex items-center gap-1.5 mt-1.5">
-                      <Clock className="w-4 h-4 text-brand-primary-light shrink-0" />
-                      Scheduled for {currentTimelineData.date} • {currentTimelineData.activities.length} Guided Stops
-                    </p>
-                  </div>
-                  <div className="bg-amber-100 border border-amber-200 p-2.5 px-4 rounded-xl shrink-0 flex items-center gap-2">
-                    <Thermometer className="w-4.5 h-4.5 text-amber-700 font-bold" />
-                    <div>
-                      <span className="block text-[9px] font-bold text-amber-800 uppercase tracking-wider">Climate Note</span>
-                      <span className="text-xs font-bold text-amber-900">{currentTimelineData.weather.split('.')[0]}</span>
+                {activeDay === 0 ? (
+                  /* RENDER ALL DAYS CONTINUOUSLY */
+                  <div className="space-y-12">
+                    
+                    {/* Section Header */}
+                    <div className="bg-white rounded-2xl border border-brand-container p-6 sm:p-8 shadow-xs">
+                      <span className="text-[10px] sm:text-xs font-bold text-brand-primary tracking-widest uppercase">7-Day Expedition Feed</span>
+                      <h2 className="font-serif text-3xl sm:text-3.5xl font-extrabold text-brand-text tracking-tight mt-1.5">
+                        Continuous Journey Timeline
+                      </h2>
+                      <p className="text-xs sm:text-sm text-brand-text-muted leading-relaxed mt-2 font-medium">
+                        A combined list of our entire campaign stops and pathways in Hokkaido. Toggle completion nodes directly as you trek to record your progress.
+                      </p>
                     </div>
-                  </div>
-                </div>
 
-                {/* Timeline Card Items List */}
-                <div className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container">
-                  {currentTimelineData.activities.map((act, index) => {
-                    const isCompleted = completedActivities.includes(act.id);
-                    return (
-                      <motion.div
-                        key={act.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.35, delay: index * 0.08 }}
-                        className={`bg-white rounded-2xl border transition-all p-5 sm:p-6 ${
-                          isCompleted 
-                            ? 'border-emerald-300 opacity-80 shadow-xs' 
-                            : 'border-brand-container hover:border-brand-primary/40 shadow-sm'
-                        }`}
-                      >
-                        {/* Timeline anchor dots */}
-                        <div className="absolute -left-[23px] sm:-left-[31px] top-7 w-4.5 h-4.5 rounded-full bg-brand-bg flex items-center justify-center border-2 border-brand-container">
-                          <span className={`w-2 h-2 rounded-full ${
-                            isCompleted ? 'bg-emerald-500' : getCategoryDotColor(act.category)
-                          }`} />
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-5 items-start">
+                    {/* Loop through each day */}
+                    {INITIAL_ITINERARY.map((dayData) => {
+                      return (
+                        <div key={dayData.day} className="space-y-6">
                           
-                          {/* Image Thumbnail if exist */}
-                          {act.img && (
-                            <div className="w-full sm:w-[150px] aspect-video sm:aspect-square shrink-0 rounded-xl overflow-hidden bg-brand-container-low border border-brand-container">
-                              <img
-                                src={act.img}
-                                alt={act.title}
-                                referrerPolicy="no-referrer"
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          )}
-
-                          {/* Stop info block representation */}
-                          <div className="flex-1 space-y-3.5 w-full">
-                            
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                              
-                              <div className="flex items-center gap-2 flex-wrap">
-                                {getActivityIcon(act.icon)}
-                                <span className="font-mono text-xs font-bold text-brand-primary-light">
-                                  {act.time}
-                                </span>
-                                <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 rounded-md ${getCategoryBadgeColor(act.category)}`}>
-                                  {act.category}
-                                </span>
-                              </div>
-
-                              {/* Toggle completed button */}
-                              <button
-                                onClick={() => toggleActivityCompletion(act.id)}
-                                className={`text-xs font-bold px-3 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
-                                  isCompleted
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                                    : 'bg-brand-container-low text-brand-text-muted border-brand-outline-variant/30 hover:bg-white hover:text-brand-text'
-                                }`}
-                              >
-                                {isCompleted ? <CheckSquare className="w-4 h-4 text-emerald-600" /> : <Square className="w-4 h-4" />}
-                                <span>{isCompleted ? 'Completed' : 'Mark Visited'}</span>
-                              </button>
-
-                            </div>
-
+                          {/* Day Banner Card */}
+                          <div className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
                             <div>
-                              <h3 className={`font-serif text-xl sm:text-2xl font-bold tracking-tight text-brand-text ${isCompleted ? 'line-through text-brand-text-muted/65' : ''}`}>
-                                {act.title}
-                              </h3>
-                              <p className="text-sm text-brand-text-muted leading-relaxed font-sans mt-1.5">
-                                {act.desc}
-                              </p>
-                            </div>
-
-                            {/* Ticket links / gear warnings */}
-                            <div className="flex flex-wrap gap-2 pt-2 text-xs">
-                              {act.gear && (
-                                <span className="bg-brand-secondary-bg text-brand-secondary-text font-medium px-2.5 py-1 rounded-md flex items-center gap-1 border border-brand-secondary/10">
-                                  <AlertCircle className="w-3.5 h-3.5 text-brand-secondary" />
-                                  <span>Gear: {act.gear}</span>
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <span className="bg-brand-primary text-white text-[10px] font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-md">
+                                  DAY {dayData.day}
                                 </span>
-                              )}
-                              
-                              {act.url && (
-                                <a
-                                  href={act.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-brand-primary font-bold hover:text-brand-primary-light flex items-center gap-1 bg-brand-primary-bg px-2.5 py-1 rounded-md border border-brand-primary/10 transition-colors"
-                                >
-                                  <span>Official Ticket Hub</span>
-                                  <ChevronRight className="w-3.5 h-3.5" />
-                                </a>
-                              )}
+                                <span className="text-xs sm:text-sm font-semibold text-brand-primary-light font-mono">• {dayData.date}</span>
+                              </div>
+                              <h3 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-brand-primary-text">
+                                {dayData.location}
+                              </h3>
                             </div>
 
+                            <div className="flex flex-col sm:items-end gap-1 text-slate-700 font-sans">
+                              <span className="font-bold text-brand-primary text-xs bg-white/80 px-2.5 py-1 rounded-lg border border-brand-outline-variant/30">
+                                🏢 Stay: {dayData.sleep}
+                              </span>
+                              <span className="text-xs sm:text-sm font-bold text-brand-text-muted font-mono whitespace-nowrap mt-1 pb-0.5 flex items-center gap-1">
+                                🌡️ Spring Climate: {dayData.weather.split('.')[0]}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Activities timeline stream for this day */}
+                          <div className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-4">
+                            {dayData.activities.map((act) => {
+                              const isCompleted = completedActivities.includes(act.id);
+                              return (
+                                <div
+                                  key={act.id}
+                                  className={`bg-white rounded-2xl border transition-all p-5 sm:p-6 relative ${
+                                    isCompleted 
+                                      ? 'border-emerald-300 opacity-80 shadow-xs' 
+                                      : 'border-brand-container hover:border-brand-primary/20 shadow-sm'
+                                  }`}
+                                >
+                                  {/* Connector Circle Dot */}
+                                  <div className="absolute -left-[23px] sm:-left-[31px] top-7 w-4.5 h-4.5 rounded-full bg-brand-bg flex items-center justify-center border-2 border-brand-container">
+                                    <span className={`w-2 h-2 rounded-full ${
+                                      isCompleted ? 'bg-emerald-500' : getCategoryDotColor(act.category)
+                                    }`} />
+                                  </div>
+
+                                  <div className="flex flex-col sm:flex-row gap-5 items-start">
+                                    {/* Image Thumbnail preview if matches */}
+                                    {act.img && (
+                                      <div className="w-full sm:w-[130px] aspect-video sm:aspect-square shrink-0 rounded-xl overflow-hidden bg-brand-container-low border border-brand-container">
+                                        <img
+                                          src={act.img}
+                                          alt={act.title}
+                                          referrerPolicy="no-referrer"
+                                          className="w-full h-full object-cover transition-transform duration-550 hover:scale-105"
+                                        />
+                                      </div>
+                                    )}
+
+                                    {/* Details */}
+                                    <div className="flex-1 space-y-3 w-full">
+                                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          {getActivityIcon(act.icon)}
+                                          <span className="font-mono text-xs sm:text-sm font-bold text-brand-primary-light">
+                                            {act.time}
+                                          </span>
+                                          <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 rounded-md ${getCategoryBadgeColor(act.category)}`}>
+                                            {act.category}
+                                          </span>
+                                        </div>
+
+                                        <button
+                                          onClick={() => toggleActivityCompletion(act.id)}
+                                          className={`text-xs font-bold px-3 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                                            isCompleted
+                                              ? 'bg-emerald-50 text-emerald-800 border-emerald-250 hover:bg-emerald-100'
+                                              : 'bg-brand-container-low text-brand-text-muted border-brand-outline-variant/30 hover:bg-white hover:text-brand-text'
+                                          }`}
+                                        >
+                                          {isCompleted ? <CheckSquare className="w-4 h-4 text-emerald-600" /> : <Square className="w-4 h-4" />}
+                                          <span>{isCompleted ? 'Completed' : 'Mark Visited'}</span>
+                                        </button>
+                                      </div>
+
+                                      <div>
+                                        <h4 className={`font-serif text-lg sm:text-xl font-bold tracking-tight text-brand-text ${isCompleted ? 'line-through text-brand-text-muted/60 font-medium' : ''}`}>
+                                          {act.title}
+                                        </h4>
+                                        <p className="text-xs sm:text-sm text-brand-text-muted leading-relaxed font-sans mt-1">
+                                          {act.desc}
+                                        </p>
+                                      </div>
+
+                                      {/* Gear recommendations / Ticket links */}
+                                      <div className="flex flex-wrap gap-2 pt-1 text-xs">
+                                        {act.gear && (
+                                          <span className="bg-brand-secondary-bg text-brand-secondary-text font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 text-[11px] border border-brand-secondary/10">
+                                            <AlertCircle className="w-3.5 h-3.5 text-brand-secondary shrink-0" />
+                                            <span>Wear: {act.gear}</span>
+                                          </span>
+                                        )}
+
+                                        <span className="bg-slate-50 text-slate-700 font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 text-[11px] border border-brand-outline-variant/30">
+                                          <span className="text-[10px] font-bold bg-slate-200 text-slate-800 rounded px-1 block shrink-0 leading-tight">¥</span>
+                                          <span>Fee: {act.price || "not available"}</span>
+                                        </span>
+
+                                        <span className="bg-slate-50 text-slate-700 font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 text-[11px] border border-brand-outline-variant/30">
+                                          <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                          <span>Hours: {act.hours || "not available"}</span>
+                                        </span>
+
+                                        <span className="bg-slate-50 text-slate-700 font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 text-[11px] border border-brand-outline-variant/30 whitespace-nowrap">
+                                          <Compass className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                                          <span className="font-bold text-brand-primary">Map:</span>
+                                          <a
+                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.title + ", Hokkaido, Japan")}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-brand-primary hover:text-brand-primary-light hover:underline font-bold inline-flex items-center"
+                                          >
+                                            Google
+                                          </a>
+                                          <span className="text-slate-300">|</span>
+                                          <a
+                                            href={`https://maps.apple.com/?q=${encodeURIComponent(act.title + ", Hokkaido, Japan")}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-brand-primary hover:text-brand-primary-light hover:underline font-bold inline-flex items-center"
+                                          >
+                                            Apple
+                                          </a>
+                                        </span>
+
+                                        {act.url && (
+                                          <a
+                                            href={act.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-brand-primary text-[11px] font-bold hover:text-brand-primary-light flex items-center gap-1 bg-brand-primary-bg px-2.5 py-1 rounded-md border border-brand-primary/10 transition-colors"
+                                          >
+                                            <span>Ticket Hub</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                          </a>
+                                        )}
+                                      </div>
+
+                                    </div>
+                                  </div>
+
+                                </div>
+                              );
+                            })}
                           </div>
 
                         </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+
+                  </div>
+                ) : (
+                  /* RENDER DETAILED SELECTED SINGLE DAY */
+                  <div className="space-y-6">
+                    
+                    {/* Header info card */}
+                    <div className="bg-white rounded-2xl border border-brand-container p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
+                      <div>
+                        <span className="text-[10px] font-bold text-brand-primary tracking-widest uppercase">Focused Day View</span>
+                        <h2 className="font-serif text-2xl sm:text-3.5xl font-extrabold text-brand-text tracking-tight mt-1">
+                          Day {currentTimelineData.day}: {currentTimelineData.location}
+                        </h2>
+                        <p className="text-xs sm:text-sm text-brand-text-muted font-sans font-bold flex items-center gap-1.5 mt-1.5">
+                          <Clock className="w-4 h-4 text-brand-primary-light shrink-0" />
+                          <span>Scheduled for: <b className="text-brand-text">{currentTimelineData.date}</b> • {currentTimelineData.activities.length} Guided Stops</span>
+                        </p>
+                      </div>
+                      <div className="bg-amber-100 border border-amber-200 p-2.5 px-4 rounded-xl shrink-0 flex items-center gap-2">
+                        <Thermometer className="w-4.5 h-4.5 text-amber-700 font-bold" />
+                        <div>
+                          <span className="block text-[9px] font-bold text-amber-800 uppercase tracking-wider">Climate Note</span>
+                          <span className="text-xs sm:text-sm font-bold text-amber-900">{currentTimelineData.weather.split('.')[0]}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timeline card items list */}
+                    <div className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container">
+                      {currentTimelineData.activities.map((act, actIdx) => {
+                        const isCompleted = completedActivities.includes(act.id);
+                        return (
+                          <motion.div
+                            key={act.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.35, delay: actIdx * 0.08 }}
+                            className={`bg-white rounded-2xl border transition-all p-5 sm:p-6 ${
+                              isCompleted 
+                                ? 'border-emerald-300 opacity-80 shadow-xs' 
+                                : 'border-brand-container hover:border-brand-primary/40 shadow-sm'
+                            }`}
+                          >
+                            {/* Connector dot */}
+                            <div className="absolute -left-[23px] sm:-left-[31px] top-7 w-4.5 h-4.5 rounded-full bg-brand-bg flex items-center justify-center border-2 border-brand-container">
+                              <span className={`w-2 h-2 rounded-full ${
+                                isCompleted ? 'bg-emerald-500' : getCategoryDotColor(act.category)
+                              }`} />
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-5 items-start">
+                              {/* Image Thumbnail */}
+                              {act.img && (
+                                <div className="w-full sm:w-[150px] aspect-video sm:aspect-square shrink-0 rounded-xl overflow-hidden bg-brand-container-low border border-brand-container">
+                                  <img
+                                    src={act.img}
+                                    alt={act.title}
+                                    referrerPolicy="no-referrer"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+
+                              {/* Stop info details */}
+                              <div className="flex-1 space-y-3 w-full">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {getActivityIcon(act.icon)}
+                                    <span className="font-mono text-xs sm:text-sm font-bold text-brand-primary-light font-bold">
+                                      {act.time}
+                                    </span>
+                                    <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 rounded-md ${getCategoryBadgeColor(act.category)}`}>
+                                      {act.category}
+                                    </span>
+                                  </div>
+
+                                  <button
+                                    onClick={() => toggleActivityCompletion(act.id)}
+                                    className={`text-xs font-bold px-3 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                                      isCompleted
+                                        ? 'bg-emerald-50 text-emerald-800 border-emerald-250 hover:bg-emerald-100'
+                                        : 'bg-brand-container-low text-brand-text-muted border-brand-outline-variant/30 hover:bg-white hover:text-brand-text'
+                                    }`}
+                                  >
+                                    {isCompleted ? <CheckSquare className="w-4 h-4 text-emerald-600" /> : <Square className="w-4 h-4" />}
+                                    <span>{isCompleted ? 'Completed' : 'Mark Visited'}</span>
+                                  </button>
+                                </div>
+
+                                <div>
+                                  <h3 className={`font-serif text-xl sm:text-2xl font-bold tracking-tight text-brand-text ${isCompleted ? 'line-through text-brand-text-muted/65 font-medium' : ''}`}>
+                                    {act.title}
+                                  </h3>
+                                  <p className="text-sm text-brand-text-muted leading-relaxed font-sans mt-1.5">
+                                    {act.desc}
+                                  </p>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2 pt-2 text-xs">
+                                  {act.gear && (
+                                    <span className="bg-brand-secondary-bg text-brand-secondary-text font-medium px-2.5 py-1 rounded-md flex items-center gap-1 border border-brand-secondary/10">
+                                      <AlertCircle className="w-3.5 h-3.5 text-brand-secondary" />
+                                      <span>Gear: {act.gear}</span>
+                                    </span>
+                                  )}
+
+                                  <span className="bg-slate-50 text-slate-700 font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 text-[11px] border border-brand-outline-variant/30">
+                                    <span className="text-[10px] font-bold bg-slate-200 text-slate-800 rounded px-1 block shrink-0 leading-tight">¥</span>
+                                    <span>Fee: {act.price || "not available"}</span>
+                                  </span>
+
+                                  <span className="bg-slate-50 text-slate-700 font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 text-[11px] border border-brand-outline-variant/30">
+                                    <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                    <span>Hours: {act.hours || "not available"}</span>
+                                  </span>
+
+                                  <span className="bg-slate-50 text-slate-700 font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 text-[11px] border border-brand-outline-variant/30 whitespace-nowrap">
+                                    <Compass className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                                    <span className="font-bold text-brand-primary">Map:</span>
+                                    <a
+                                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.title + ", Hokkaido, Japan")}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-brand-primary hover:text-brand-primary-light hover:underline font-bold inline-flex items-center"
+                                    >
+                                      Google
+                                    </a>
+                                    <span className="text-slate-300">|</span>
+                                    <a
+                                      href={`https://maps.apple.com/?q=${encodeURIComponent(act.title + ", Hokkaido, Japan")}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-brand-primary hover:text-brand-primary-light hover:underline font-bold inline-flex items-center"
+                                    >
+                                      Apple
+                                    </a>
+                                  </span>
+
+                                  {act.url && (
+                                    <a
+                                      href={act.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-brand-primary font-bold hover:text-brand-primary-light flex items-center gap-1 bg-brand-primary-bg px-2.5 py-1 rounded-md border border-brand-primary/10 transition-colors"
+                                    >
+                                      <span>Official Ticket Hub</span>
+                                      <ChevronRight className="w-3.5 h-3.5" />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+
+                  </div>
+                )}
 
               </div>
               
-            </motion.div>
-          )}
-
-          {/* Full Journey Continuous Timeline */}
-          {currentTab === 'full-timeline' && (
-            <motion.div
-              key="full-timeline-view"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-            >
-              {/* Quick Navigation Panel & Sticky Guide */}
-              <div className="lg:col-span-3 lg:sticky lg:top-[160px] space-y-4">
-                <div className="bg-white rounded-2xl border border-brand-container p-5 shadow-xs">
-                  <div className="flex items-center gap-1.5 mb-3.5 text-brand-primary">
-                    <ListTodo className="w-4.5 h-4.5" />
-                    <h3 className="font-sans text-xs font-bold tracking-widest uppercase">Expedition Guide</h3>
-                  </div>
-                  
-                  <p className="text-xs text-brand-text-muted leading-relaxed mb-4">
-                    Quickly navigate across the 7-day campaign or view individual completion states below.
-                  </p>
-
-                  <div className="hidden lg:flex flex-col gap-1.5">
-                    {INITIAL_ITINERARY.map((d) => {
-                      const completedCount = d.activities.filter(a => completedActivities.includes(a.id)).length;
-                      const totalCount = d.activities.length;
-                      const isFullyScouted = completedCount === totalCount;
-
-                      return (
-                        <button
-                          key={d.day}
-                          onClick={() => {
-                            const el = document.getElementById(`full-day-${d.day}`);
-                            if (el) {
-                              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                          }}
-                          className={`w-full text-left px-3.5 py-3 rounded-xl border flex items-center justify-between group transition-all cursor-pointer ${
-                            isFullyScouted 
-                              ? 'bg-emerald-50/50 border-emerald-150 text-emerald-900 font-semibold hover:bg-emerald-50'
-                              : 'bg-brand-container-low border-brand-outline-variant/20 hover:bg-white hover:border-brand-primary/40 text-brand-text'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${isFullyScouted ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                            <span className="text-xs font-bold font-serif font-medium">Day {d.day}</span>
-                          </div>
-                          <span className="text-[10px] font-mono shrink-0 font-bold bg-slate-200/50 text-slate-700 px-1.5 py-0.5 rounded-md">
-                            {completedCount}/{totalCount} Done
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Mobile Quick Pills with horizontal swipe */}
-                  <div className="flex lg:hidden overflow-x-auto gap-2 py-1.5 scrollbar-none">
-                    {INITIAL_ITINERARY.map((d) => {
-                      const completedCount = d.activities.filter(a => completedActivities.includes(a.id)).length;
-                      const totalCount = d.activities.length;
-                      const isFullyScouted = completedCount === totalCount;
-                      return (
-                        <button
-                          key={d.day}
-                          onClick={() => {
-                            const el = document.getElementById(`full-day-${d.day}`);
-                            if (el) {
-                              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                          }}
-                          className={`px-3 py-1.5 rounded-lg border text-xs shrink-0 font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
-                            isFullyScouted
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                              : 'bg-brand-container-low text-brand-text-muted border-brand-outline-variant/30 hover:bg-white'
-                          }`}
-                        >
-                          <span>Day {d.day}</span>
-                          <span className="text-[9px] font-mono opacity-80 bg-white/60 px-1 py-0.2 rounded-sm">{completedCount}/{totalCount}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Central Timeline Stream */}
-              <div className="lg:col-span-9 space-y-12">
-                <div className="bg-white rounded-2xl border border-brand-container p-6 sm:p-8 shadow-xs">
-                  <span className="text-[10px] font-bold text-brand-primary tracking-widest uppercase">7-Day MASTERFEED</span>
-                  <h2 className="font-serif text-3.5xl font-extrabold text-brand-text tracking-tight mt-1.5">
-                    Continuous Journey Timeline
-                  </h2>
-                  <p className="text-sm text-brand-text-muted leading-relaxed mt-2.5">
-                    A comprehensive presentation of the entire spring campaign. Toggle checkboxes to record your experience, track gears across high altitudes, and read tourist routes in sequence.
-                  </p>
-                </div>
-
-                {/* Day-by-Day Loop */}
-                {INITIAL_ITINERARY.map((dayData) => {
-                  return (
-                    <div 
-                      key={dayData.day} 
-                      id={`full-day-${dayData.day}`}
-                      className="scroll-mt-48 space-y-6 animate-fade-in"
-                    >
-                      {/* Day Segment Header Card */}
-                      <div className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="bg-brand-primary text-white text-[10px] font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-md">
-                              DAY {dayData.day}
-                            </span>
-                            <span className="text-xs font-semibold text-brand-primary-light font-mono">• {dayData.date}</span>
-                          </div>
-                          <h3 className="font-serif text-2.5xl sm:text-3xl font-bold tracking-tight text-brand-primary-text">
-                            {dayData.location}
-                          </h3>
-                        </div>
-
-                        {/* Extra stats */}
-                        <div className="flex flex-col sm:items-end gap-1 text-sm font-sans">
-                          <span className="font-bold text-brand-primary-light text-xs bg-white/80 px-2.5 py-1 rounded-lg border border-brand-outline-variant/30">
-                            🏢 Stay: {dayData.sleep}
-                          </span>
-                          <span className="text-[11px] font-bold text-brand-text-muted font-mono whitespace-nowrap">
-                            🌡️ {dayData.weather.split('.')[0]}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Day Activities Inside Target Group */}
-                      <div className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-4">
-                        {dayData.activities.map((act) => {
-                          const isCompleted = completedActivities.includes(act.id);
-                          return (
-                            <div
-                              key={act.id}
-                              className={`bg-white rounded-2xl border transition-all p-5 sm:p-6 relative ${
-                                isCompleted 
-                                  ? 'border-emerald-300 opacity-80 shadow-xs' 
-                                  : 'border-brand-container hover:border-brand-primary/20 shadow-sm'
-                              }`}
-                            >
-                              {/* Connector dot */}
-                              <div className="absolute -left-[23px] sm:-left-[31px] top-7 w-4.5 h-4.5 rounded-full bg-brand-bg flex items-center justify-center border-2 border-brand-container">
-                                <span className={`w-2 h-2 rounded-full ${
-                                  isCompleted ? 'bg-emerald-500' : getCategoryDotColor(act.category)
-                                }`} />
-                              </div>
-
-                              <div className="flex flex-col sm:flex-row gap-5 items-start">
-                                {/* Activity visual element image preview if matches */}
-                                {act.img && (
-                                  <div className="w-full sm:w-[130px] aspect-video sm:aspect-square shrink-0 rounded-xl overflow-hidden bg-brand-container-low border border-brand-container">
-                                    <img
-                                      src={act.img}
-                                      alt={act.title}
-                                      referrerPolicy="no-referrer"
-                                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                    />
-                                  </div>
-                                )}
-
-                                {/* Informational block details */}
-                                <div className="flex-1 space-y-3 w-full">
-                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      {getActivityIcon(act.icon)}
-                                      <span className="font-mono text-xs font-bold text-brand-primary-light">
-                                        {act.time}
-                                      </span>
-                                      <span className={`text-[9px] font-bold uppercase tracking-widest border px-2 py-0.5 rounded-md ${getCategoryBadgeColor(act.category)}`}>
-                                        {act.category}
-                                      </span>
-                                    </div>
-
-                                    {/* Action items toggle directly */}
-                                    <button
-                                      onClick={() => toggleActivityCompletion(act.id)}
-                                      className={`text-xs font-bold px-3 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
-                                        isCompleted
-                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-250 hover:bg-emerald-100'
-                                          : 'bg-brand-container-low text-brand-text-muted border-brand-outline-variant/30 hover:bg-white hover:text-brand-text'
-                                      }`}
-                                    >
-                                      {isCompleted ? <CheckSquare className="w-4 h-4 text-emerald-600" /> : <Square className="w-4 h-4" />}
-                                      <span>{isCompleted ? 'Completed' : 'Mark Visited'}</span>
-                                    </button>
-                                  </div>
-
-                                  <div>
-                                    <h4 className={`font-serif text-lg sm:text-xl font-bold tracking-tight text-brand-text ${isCompleted ? 'line-through text-brand-text-muted/60 font-medium' : ''}`}>
-                                      {act.title}
-                                    </h4>
-                                    <p className="text-xs sm:text-sm text-brand-text-muted leading-relaxed font-sans mt-1">
-                                      {act.desc}
-                                    </p>
-                                  </div>
-
-                                  {/* Gear warning / Official link labels */}
-                                  <div className="flex flex-wrap gap-2 pt-1 text-xs">
-                                    {act.gear && (
-                                      <span className="bg-brand-secondary-bg text-brand-secondary-text font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 text-[11px] border border-brand-secondary/10">
-                                        <AlertCircle className="w-3.5 h-3.5 text-brand-secondary shrink-0" />
-                                        <span>Wear: {act.gear}</span>
-                                      </span>
-                                    )}
-
-                                    {act.url && (
-                                      <a
-                                        href={act.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-brand-primary text-[11px] font-bold hover:text-brand-primary-light flex items-center gap-1 bg-brand-primary-bg px-2.5 py-1 rounded-md border border-brand-primary/10 transition-colors"
-                                      >
-                                        <span>Ticket Hub</span>
-                                        <ChevronRight className="w-3.5 h-3.5" />
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             </motion.div>
           )}
 
