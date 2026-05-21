@@ -525,79 +525,48 @@ export default function App() {
     .map((act) => ({ title: act.title, gear: act.gear }));
 
   return (
-    <div className="min-h-screen bg-brand-bg pb-16 selection:bg-brand-primary-bg selection:text-brand-primary-text font-sans antialiased text-brand-text">
-      {/* Premium Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-brand-container">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 sm:gap-4 relative w-full">
-            {/* Text Size Toggle */}
-            <button
-              onClick={() =>
-                setTextSizeScale((prev) =>
-                  prev === 1.0 ? 1.15 : prev === 1.15 ? 1.3 : 1.0,
-                )
-              }
-              className="absolute top-0 right-0 md:static p-1.5 sm:p-2 text-brand-text-muted hover:text-brand-text hover:bg-slate-100 rounded-lg transition-colors border border-brand-outline-variant/30 bg-slate-50 md:order-last z-10"
-              title={`Toggle Text Size (Current: ${textSizeScale * 100}%)`}
-            >
-              <Type className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-            {/* Branding with Elegant paired serifs */}
-            <div className="shrink-0 pr-10 md:pr-0">
-              <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
-                <span className="text-[8px] sm:text-[10px] font-mono font-bold tracking-widest text-brand-primary uppercase bg-brand-primary-bg px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md">
-                  ★ SPRING EXPEDITION
+    <div className="min-h-screen max-w-[100vw] overflow-x-hidden bg-brand-bg pb-16 selection:bg-brand-primary-bg selection:text-brand-primary-text font-sans antialiased text-brand-text">
+      {/* Compact Top App Bar */}
+      <header className="bg-white border-b border-brand-container">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex flex-row justify-between items-center gap-4 relative w-full">
+            {/* Branding */}
+            <div className="shrink-0 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[8px] sm:text-[10px] font-mono font-bold tracking-widest text-brand-primary uppercase bg-brand-primary-bg px-1.5 py-0.5 rounded-md">
+                  ★ EXPEDITION
                 </span>
-                <span className="text-[10px] sm:text-xs text-brand-text-muted hidden sm:inline font-semibold">
-                  | May 24 - May 30
+                <span className="text-[10px] sm:text-[11px] text-brand-text-muted hidden sm:inline font-semibold">
+                  | Hokkaido Circuit
                 </span>
               </div>
-              <h1 className="font-serif text-lg sm:text-3.5xl font-bold tracking-tight text-brand-text">
-                Hokkaido Alpine &amp; Flora
+              <h1 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-brand-text leading-none">
+                Alpine &amp; Flora
               </h1>
             </div>
 
-            {/* Live Statistics */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full md:w-auto mt-2 sm:mt-0">
-              {/* Progress Bar Widget */}
-              <div className="flex items-center gap-2 sm:gap-4 bg-brand-container-low px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl border border-brand-outline-variant/30 grow">
-                <div className="grow md:grow-0">
-                  <div className="flex justify-between items-center text-[10px] sm:text-xs mb-1 font-bold">
-                    <span className="text-brand-text-muted uppercase tracking-wider">
-                      Journey Progress
-                    </span>
-                    <span className="text-brand-primary font-mono">
-                      {percentageCompleted}%
-                    </span>
-                  </div>
-                  <div className="w-full sm:w-56 bg-brand-container h-1.5 sm:h-2.5 rounded-full overflow-hidden">
-                    <motion.div
-                      key="progress-bar-movement"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${percentageCompleted}%` }}
-                      transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="bg-brand-primary h-full rounded-full"
-                    />
-                  </div>
-                </div>
-                <div className="border-l border-brand-outline-variant/40 pl-2 sm:pl-4 text-center">
-                  <span className="block text-xs sm:text-sm font-bold text-brand-text font-mono leading-none">
-                    {currentCompletedCount}/{totalActivitiesCount}
-                  </span>
-                  <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-brand-text-muted font-bold block mt-1">
-                    Stops
-                  </span>
-                </div>
-              </div>
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() =>
+                  setTextSizeScale((prev) =>
+                    prev === 1.0 ? 1.15 : prev === 1.15 ? 1.3 : 1.0,
+                  )
+                }
+                className="p-1.5 sm:p-2 text-brand-text-muted hover:text-brand-text hover:bg-slate-100 rounded-lg transition-colors border border-brand-outline-variant/30 bg-slate-50"
+                title={`Toggle Text Size (Current: ${textSizeScale * 100}%)`}
+              >
+                <Type className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
             </div>
           </div>
 
-          {/* Navigation Bar Header Tabs - Consolidated list to avoid duplication */}
-          <div className="flex justify-start gap-1 mt-6 border-t border-brand-container/50 pt-3 overflow-x-auto scrollbar-none">
+          {/* Navigation Tabs - Scrollable */}
+          <div className="flex justify-start gap-1 mt-3 sm:mt-4 overflow-x-auto scrollbar-none">
             {[
-              { id: "itinerary", label: "Journey Timeline", icon: Calendar },
-              { id: "map", label: "Alpine Map Tracker", icon: Compass },
-              { id: "gallery", label: "Photographer Guide", icon: Camera },
+              { id: "itinerary", label: "Timeline", icon: Calendar },
+              { id: "map", label: "Map", icon: Compass },
+              { id: "gallery", label: "Gallery", icon: Camera },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = currentTab === tab.id;
@@ -606,13 +575,13 @@ export default function App() {
                   key={tab.id}
                   id={`tab-btn-${tab.id}`}
                   onClick={() => setCurrentTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg cursor-pointer transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm sm:px-4 sm:py-2 font-semibold rounded-full cursor-pointer transition-all whitespace-nowrap ${
                     isActive
                       ? "bg-brand-primary text-white shadow-xs"
                       : "text-brand-text-muted hover:text-brand-text hover:bg-brand-container-low"
                   }`}
                 >
-                  <Icon className="w-4.5 h-4.5" />
+                  <Icon className="w-4 h-4" />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -622,7 +591,38 @@ export default function App() {
       </header>
 
       {/* Main Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 sm:mt-8">
+        {/* Mobile-Friendly Journey Progress (moved from header) */}
+        <div className="mb-6 flex items-center gap-3 bg-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-brand-outline-variant/30 shadow-xs">
+          <div className="grow">
+            <div className="flex justify-between items-center text-[10px] sm:text-xs mb-1.5 font-bold">
+              <span className="text-brand-text-muted uppercase tracking-wider">
+                Journey Progress
+              </span>
+              <span className="text-brand-primary font-mono">
+                {percentageCompleted}%
+              </span>
+            </div>
+            <div className="w-full bg-brand-container h-1.5 sm:h-2 rounded-full overflow-hidden">
+              <motion.div
+                key="progress-bar-movement"
+                initial={{ width: 0 }}
+                animate={{ width: `${percentageCompleted}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="bg-brand-primary h-full rounded-full"
+              />
+            </div>
+          </div>
+          <div className="border-l border-brand-outline-variant/40 pl-3 text-center shrink-0">
+            <span className="block text-sm font-bold text-brand-text font-mono leading-none">
+              {currentCompletedCount}/{totalActivitiesCount}
+            </span>
+            <span className="text-[9px] uppercase tracking-wider text-brand-text-muted font-bold block mt-1">
+              Stops
+            </span>
+          </div>
+        </div>
+
         <AnimatePresence mode="wait">
           {/* Combined Itinerary Feed and Day-Focus View */}
           {currentTab === "itinerary" && (
