@@ -786,7 +786,7 @@ export default function App() {
                                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                         <div className="flex items-center gap-2 flex-wrap">
                                           {getActivityIcon(act.icon)}
-                                          <span className="font-mono text-xs sm:text-sm font-bold text-brand-primary-light">
+                                          <span className="font-mono text-sm sm:text-base font-bold text-brand-primary-light">
                                             {act.time}
                                           </span>
                                           <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 rounded-md ${getCategoryBadgeColor(act.category)}`}>
@@ -949,7 +949,7 @@ export default function App() {
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     {getActivityIcon(act.icon)}
-                                    <span className="font-mono text-xs sm:text-sm font-bold text-brand-primary-light font-bold">
+                                    <span className="font-mono text-sm sm:text-base font-bold text-brand-primary-light font-bold">
                                       {act.time}
                                     </span>
                                     <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 rounded-md ${getCategoryBadgeColor(act.category)}`}>
