@@ -1,19 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TransformWrapper, TransformComponent, useControls } from "react-zoom-pan-pinch";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
-  MapPin,
   Compass,
   RotateCcw,
-  Clock,
-  Info,
   ZoomIn,
   ZoomOut,
   X,
-  Sparkles,
-  ShoppingBag,
-  Utensils,
-  Coffee,
 } from "lucide-react";
 
 interface Landmark {
@@ -193,39 +186,54 @@ export default function TanukikojiVectorMap({ onClose }: { onClose?: () => void 
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(LANDMARKS[0]);
   const [hoveredZone, setHoveredZone] = useState<string | null>(null);
 
-  const getCatColor = (cat: string) => {
-    switch (cat) {
-      case "Shopping":
-        return "bg-amber-100 text-amber-800 border-amber-200";
-      case "Food":
-        return "bg-rose-100 text-rose-800 border-rose-200";
-      case "Sight":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200";
-      case "Hotel":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Shrine":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      default:
-        return "bg-slate-100 text-slate-800 border-slate-200";
-    }
-  };
+  const [mapConfig, setMapConfig] = useState({
+    initialScale: 1,
+    minScale: 0.6,
+    initialX: 0,
+    initialY: 0,
+    isLoaded: false,
+  });
 
-  const getCatIcon = (cat: string) => {
-    switch (cat) {
-      case "Shopping":
-        return <ShoppingBag className="w-3.5 h-3.5" />;
-      case "Food":
-        return <Utensils className="w-3.5 h-3.5" />;
-      case "Sight":
-        return <Compass className="w-3.5 h-3.5" />;
-      case "Hotel":
-        return <Coffee className="w-3.5 h-3.5" />;
-      case "Shrine":
-        return <Sparkles className="w-3.5 h-3.5" />;
-      default:
-        return <Info className="w-3.5 h-3.5" />;
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const handleResize = () => {
+        const w = window.innerWidth;
+        if (w < 768) {
+          // Centering a 1000px x 600px canvas in a smaller mobile view
+          const availableW = Math.max(280, w - 24); 
+          const availableH = 350; // Map Board Side has h-[350px] on mobile
+          
+          const scaleX = availableW / 1000;
+          const scaleY = availableH / 600;
+          // Scale it to fit the screen nicely with safety margins
+          const scale = Math.min(scaleX, scaleY) * 0.96;
+          
+          const xOffset = (availableW - 1000 * scale) / 2;
+          const yOffset = (availableH - 600 * scale) / 2;
+          
+          setMapConfig({
+            initialScale: scale,
+            minScale: scale * 0.5,
+            initialX: xOffset,
+            initialY: yOffset,
+            isLoaded: true,
+          });
+        } else {
+          setMapConfig({
+            initialScale: 0.82,
+            minScale: 0.45,
+            initialX: -40,
+            initialY: -10,
+            isLoaded: true,
+          });
+        }
+      };
+
+      handleResize();
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
     }
-  };
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col md:flex-row bg-[#fafbff] text-slate-850 font-sans select-none relative rounded-3xl overflow-hidden min-h-[550px] md:min-h-[600px] max-h-[85vh]">
@@ -258,10 +266,11 @@ export default function TanukikojiVectorMap({ onClose }: { onClose?: () => void 
 
         <div className="w-full h-full cursor-grab active:cursor-grabbing relative">
           <TransformWrapper
-            initialScale={1}
-            initialPositionX={0}
-            initialPositionY={0}
-            minScale={0.7}
+            key={`${mapConfig.initialScale}-${mapConfig.initialX}`}
+            initialScale={mapConfig.initialScale}
+            initialPositionX={mapConfig.initialX}
+            initialPositionY={mapConfig.initialY}
+            minScale={mapConfig.minScale}
             maxScale={4}
           >
             <MapControls />
@@ -272,8 +281,6 @@ export default function TanukikojiVectorMap({ onClose }: { onClose?: () => void 
                 backgroundColor: "#f4f6fa",
               }}
               contentStyle={{
-                width: "100%",
-                height: "100%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -475,31 +482,63 @@ export default function TanukikojiVectorMap({ onClose }: { onClose?: () => void 
                     if (loc.category === "Shrine") markerColor = "#7c3aed"; // purple
 
                     return (
-                      <g
+                      <motion.g
                         key={loc.id}
                         transform={`translate(${loc.x}, ${loc.y})`}
                         onClick={() => setSelectedLandmark(loc)}
+                        whileHover="hover"
+                        initial="initial"
                         className="cursor-pointer group select-none"
                       >
+                        {/* Subtle organic breathing/pulsing aura background for all pins */}
+                        <motion.circle
+                          cx="0"
+                          cy="0"
+                          r={isSelected ? 18 : 13}
+                          fill={markerColor}
+                          opacity={0.16}
+                          animate={{
+                            scale: [0.95, 1.35, 0.95],
+                            opacity: [0.14, 0.45, 0.14],
+                          }}
+                          transition={{
+                            duration: 2.2 + (loc.x % 7) * 0.15, // dynamic offset to create customized natural rhythm
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                          pointerEvents="none"
+                        />
+
                         {/* Selected animation pulses */}
                         {isSelected && (
                           <circle cx="0" cy="0" r="24" fill={markerColor} opacity="0.32" className="animate-ping" style={{ animationDuration: "3s" }} />
                         )}
 
                         {/* Interactive Circle Pin */}
-                        <circle
+                        <motion.circle
                           cx="0"
                           cy="0"
                           r={isSelected ? 10 : 8}
                           fill={markerColor}
                           stroke="#ffffff"
                           strokeWidth={isSelected ? 3 : 2}
-                          className="transition-all duration-300 group-hover:scale-125 hover:fill-slate-900 shadow-md"
+                          variants={{
+                            initial: { scale: 1, opacity: 1 },
+                            hover: { scale: 1.35, opacity: 0.82 }
+                          }}
+                          transition={{ type: "spring", stiffness: 350, damping: 15 }}
+                          className="shadow-md transition-colors duration-300 group-hover:fill-slate-900"
                         />
 
                         {/* Label tag above elements if not the global Arcade */}
                         {!isArcade && (
-                          <g transform="translate(0, -14)">
+                          <motion.g
+                            variants={{
+                              initial: { y: -14, scale: 1 },
+                              hover: { y: -18, scale: 1.05 }
+                            }}
+                            transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                          >
                             {/* Simple text element for names */}
                             <rect
                               x={-(loc.name.length * 2.8) - 10}
@@ -522,9 +561,9 @@ export default function TanukikojiVectorMap({ onClose }: { onClose?: () => void 
                             >
                               {loc.name.replace(" (1096)", "").replace(" (60)", "").replace(" (48)", "").replace(" (51)", "")}
                             </text>
-                          </g>
+                          </motion.g>
                         )}
-                      </g>
+                      </motion.g>
                     );
                   })}
                 </svg>
@@ -534,109 +573,6 @@ export default function TanukikojiVectorMap({ onClose }: { onClose?: () => void 
         </div>
       </div>
 
-      {/* Information Sidebar details */}
-      <div className="w-full md:w-[320px] shrink-0 bg-white p-6 flex flex-col justify-between border-t md:border-t-0 border-slate-100 overflow-y-auto">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-450 flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-brand-primary" /> Landmark Directory
-            </h3>
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center cursor-pointer max-md:hidden"
-                title="Close Lightbox"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          <AnimatePresence mode="wait">
-            {selectedLandmark ? (
-              <motion.div
-                key={selectedLandmark.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
-                className="flex flex-col gap-3 font-sans"
-              >
-                <div>
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getCatColor(
-                      selectedLandmark.category
-                    )}`}
-                  >
-                    {getCatIcon(selectedLandmark.category)}
-                    {selectedLandmark.category}
-                  </span>
-                </div>
-
-                <div>
-                  <h4 className="font-serif text-lg md:text-xl font-bold text-slate-900 leading-tight">
-                    {selectedLandmark.name}
-                  </h4>
-                  {selectedLandmark.jpName && (
-                    <span className="text-xs font-bold text-slate-450 italic mt-0.5 block">
-                      {selectedLandmark.jpName}
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-xs text-slate-600 leading-relaxed md:text-sm bg-slate-50 p-3 rounded-xl border border-slate-100/80">
-                  {selectedLandmark.description}
-                </p>
-
-                {selectedLandmark.details && (
-                  <div className="bg-brand-primary-bg/20 p-3 rounded-xl border border-brand-primary/10">
-                    <span className="text-[10px] font-bold font-mono text-brand-primary uppercase tracking-wider block mb-1">
-                      💡 Pro Traveler Tip
-                    </span>
-                    <p className="text-xs text-brand-primary-text font-medium leading-relaxed">
-                      {selectedLandmark.details}
-                    </p>
-                  </div>
-                )}
-
-                {selectedLandmark.hours && (
-                  <div className="text-xs text-slate-500 font-medium flex items-center gap-2 mt-1">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span><strong>Hours:</strong> {selectedLandmark.hours}</span>
-                  </div>
-                )}
-              </motion.div>
-            ) : (
-              <div className="py-12 flex flex-col items-center justify-center text-center gap-2 text-slate-400">
-                <Compass className="w-8 h-8 text-slate-300 animate-pulse" />
-                <p className="text-xs font-medium">Select a colored pin on the map to show full guide details.</p>
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Quick Menu Selection Directory */}
-        <div className="border-t border-slate-100/90 pt-4 mt-6">
-          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-350 block mb-2">
-            Tap Quick-Jump Locations
-          </span>
-          <div className="grid grid-cols-2 gap-1.5">
-            {LANDMARKS.slice(0, 6).map((mark) => (
-              <button
-                key={mark.id}
-                onClick={() => setSelectedLandmark(mark)}
-                className={`text-left px-2 py-1.5 rounded-lg text-xs font-medium truncate border transition-all ${
-                  selectedLandmark?.id === mark.id
-                    ? "bg-indigo-50 border-indigo-200 text-indigo-700 font-bold"
-                    : "bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {mark.name.replace(" (1096)", "").replace(" (60)", "").replace(" (48)", "").replace(" (51)", "").replace(" Shopping Arcade", "").replace(" Diner", "")}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

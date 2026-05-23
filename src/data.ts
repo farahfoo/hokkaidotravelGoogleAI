@@ -103,10 +103,13 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
           {
             id: "act-2-2-alt-2",
             time: "11:30 AM",
-            title: "Mt. Kenashi Lookout Stroll",
-            desc: "Drive up Mt. Kenashi for premium high-vantage views of Ishikari Bay and the winding mountain highway.",
-            price: "Free",
-            img: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&q=80"
+            title: "Otaru Aquarium",
+            desc: "Explore one of Hokkaido's largest marine parks overlooking the Sea of Japan. See dynamic penguin or harbor seal shows, watch giant Pacific octopuses, and view diverse cold-water marine life native to northern seas",
+            price: "¥1,300",
+            hours: "09:00 AM - 05:00 PM",
+            gear: "Comfortable indoor/outdoor casual clothing and camera.",
+            img: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=500&q=80",
+            url: "https://otaru-aq.jp/en/"
           },
           {
             id: "act-2-2-alt-3",
@@ -310,13 +313,46 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
   {
     day: 5,
     date: "May 28",
-    location: "Jozankei",
+    location: "Sapporo & Jozankei",
     sleep: "Jozankei Ryokan",
     weather: "17°C (63°F). Breezy.",
     activities: [
       {
         id: "act-5-1",
         time: "10:00 AM",
+        title: "Depart from Sapporo Hotel",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Fuel & Parking",
+        hours: "24/7"
+      },
+      {
+        id: "act-5-2",
+        time: "10:45 AM",
+        title: "Royce' Cacao & Chocolate Town",
+        category: "Shopping",
+        desc: "Explore this state-of-the-art interactive chocolate factory. Travel through simulated cacao fields, watch real factory robotic belts pack classic waves of confections, participate in a customized chocolate bar workshop, and enjoy light savory pastries at the exclusive on-site bakery.",
+        url: "https://www.royce.com/brand/cacaoandchocolatetown/",
+        icon: "Gift",
+        img: "https://images.unsplash.com/photo-1511381939415-e44015466834?auto=format&fit=crop&w=500&q=80",
+        price: "¥1,200 (Reservation recommended)",
+        hours: "10:00 AM - 5:00 PM (Last entry 4:00 PM)",
+        gear: "Comfortable shoes for indoor walking across multiple gallery floors"
+      },
+      {
+        id: "act-5-3",
+        time: "12:45 PM",
+        title: "Drive to Moerenuma Park",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Free",
+        hours: "24/7"
+      },
+      {
+        id: "act-5-4",
+        time: "01:15 PM",
         title: "Moerenuma Park",
         category: "Sightseeing",
         desc: "Large-scale sculpture park designed by Isamu Noguchi. Features the iconic Glass Pyramid.",
@@ -327,20 +363,30 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         hours: "7:00 AM - 10:00 PM"
       },
       {
-        id: "act-5-2",
-        time: "12:00 PM",
+        id: "act-5-5",
+        time: "02:30 PM",
         title: "Satsuraku Milk no Sato",
         category: "Food",
         desc: "Located right next to Moerenuma Park. Enjoy their famous farm-fresh Hokkaido milk soft-serve ice cream, check out the pasture, view the dairy cows, and explore this lush countryside farm experience right in Sapporo's backyard.",
         icon: "Utensils",
-        img: "https://images.unsplash.com/photo-1527018601619-a508a2be00cd?auto=format&fit=crop&w=500&q=80",
+        img: "https://images.unsplash.com/photo-1547496502-affa22d38842?auto=format&fit=crop&w=500&q=80",
         price: "Free Admission (Soft-serve ~¥400)",
         hours: "9:00 AM - 5:00 PM",
         gear: "Sunglasses, light windbreaker as open farm breezes are refreshingly cool."
       },
       {
-        id: "act-5-3",
-        time: "01:30 PM",
+        id: "act-5-6",
+        time: "03:30 PM",
+        title: "Drive to Shiroi Koibito Park",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Free",
+        hours: "24/7"
+      },
+      {
+        id: "act-5-7",
+        time: "04:00 PM",
         title: "Shiroi Koibito Park",
         category: "Shopping",
         desc: "Chocolate factory tour and fairytale architecture.",
@@ -351,8 +397,18 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         hours: "10:00 AM - 6:00 PM"
       },
       {
-        id: "act-5-4",
-        time: "05:00 PM",
+        id: "act-5-8",
+        time: "05:15 PM",
+        title: "Drive to Mount Moiwa Ropeway",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Free",
+        hours: "24/7"
+      },
+      {
+        id: "act-5-9",
+        time: "05:45 PM",
         title: "Mount Moiwa Ropeway",
         category: "Sightseeing",
         desc: "Ascend Mount Moiwa via the scenic ropeway and unique mini-cable car to experience one of Hokkaido's three most spectacular night views. See the entire glittering city grid of Sapporo spread out underneath you from the active summit observation deck. Beautiful during dusk and nightfall.",
@@ -364,8 +420,18 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         gear: "Warm layers or windbreaker—the observation deck gets quite windy and chilly at night."
       },
       {
-        id: "act-5-5",
-        time: "07:00 PM",
+        id: "act-5-10",
+        time: "07:15 PM",
+        title: "Drive to Jozankei Ryokan",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Free",
+        hours: "24/7"
+      },
+      {
+        id: "act-5-11",
+        time: "08:00 PM",
         title: "Ryokan Check-in",
         category: "Logistics",
         desc: "Traditional Japanese inn arrival in the Onsen town. Forest views from your room.",
@@ -376,8 +442,8 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         hours: "not available"
       },
       {
-        id: "act-5-6",
-        time: "08:15 PM",
+        id: "act-5-12",
+        time: "08:30 PM",
         title: "Wagyu Kaiseki Dinner",
         category: "Food",
         desc: "Multi-course traditional dinner with Zen aesthetic.",
@@ -399,9 +465,19 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
       {
         id: "act-6-1",
         time: "10:00 AM",
+        title: "Depart from Jozankei Ryokan",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Fuel & Parking",
+        hours: "24/7"
+      },
+      {
+        id: "act-6-2",
+        time: "11:30 AM",
         title: "Mt. Usu Ropeway",
         category: "Sightseeing",
-        desc: "Active volcano views. Gear: Hiking Boots.",
+        desc: "Active volcano views. Drive south-southwest from Jozankei along Nakayama Pass.",
         url: "https://usuzan.hokkaido.jp/en/",
         icon: "Mountain",
         gear: "Hiking Boots Required. Thermal fleece layer",
@@ -410,8 +486,8 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         hours: "8:15 AM - 5:30 PM"
       },
       {
-        id: "act-6-2",
-        time: "12:30 PM",
+        id: "act-6-3",
+        time: "01:15 PM",
         title: "Sendouan Wagyu",
         category: "Food",
         desc: "Lakefront dining featuring Hokkaido beef and panoramic views.",
@@ -421,8 +497,18 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         hours: "11:00 AM - 7:00 PM"
       },
       {
-        id: "act-6-3",
-        time: "03:30 PM",
+        id: "act-6-4",
+        time: "02:30 PM",
+        title: "Scenic Drive to Lake Shikotsu",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Free",
+        hours: "24/7"
+      },
+      {
+        id: "act-6-5",
+        time: "03:45 PM",
         title: "Lake Shikotsu",
         category: "Sightseeing",
         desc: "Crystal clear caldera lake visit. Serene nature at its best.",
@@ -436,15 +522,25 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
   {
     day: 6,
     id: "day-6-sapporo",
-    optionName: "Sapporo City Option",
+    optionName: "Yubari & Ebetsu Countryside Drive",
     date: "May 29",
-    location: "Sapporo City Alternative",
+    location: "Ebetsu & Yubari",
     sleep: "Chitose Hotel",
-    weather: "18°C (64°F). Sunny, pleasant.",
+    weather: "18°C (64°F). Sunny, clear roads—ideal for scenic driving.",
     activities: [
       {
         id: "act-6-sapporo-1",
         time: "10:00 AM",
+        title: "Depart from Jozankei Ryokan",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Fuel & Parking",
+        hours: "24/7"
+      },
+      {
+        id: "act-6-sapporo-2",
+        time: "11:15 AM",
         title: "Historical Village of Hokkaido",
         category: "Sightseeing",
         desc: "Explore a massive open-air museum preserving roughly 60 historic buildings from Meiji to Showa period Hokkaido. Witness frontier town streetscapes, agricultural villages, horse-drawn trolleys, and rustic architecture up-close.",
@@ -456,8 +552,52 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         gear: "Comfortable shoes for walking (large open-air terrain)"
       },
       {
-        id: "act-6-sapporo-2",
-        time: "12:30 PM",
+        id: "act-6-sapporo-3",
+        time: "01:15 PM",
+        title: "Expressway Journey to Yubari",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Expressway Tolls (~¥2,100)",
+        hours: "24/7"
+      },
+      {
+        id: "act-6-sapporo-4",
+        time: "02:15 PM",
+        title: "JA Yubari City Melon Dome",
+        category: "Food",
+        desc: "Arrive at the unmistakable giant melon-shaped dome store in Yubari. Late May is the start of the legendary Yubari King Melon harvest! Rent a slice of perfectly chilled, incredibly sweet, orange-fleshed fresh harvest, or try their unique premium melon soft-serve.",
+        icon: "ShoppingBag",
+        img: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=500&q=80",
+        price: "Free Admission (Melon slice ~¥1,500 - ¥2,500)",
+        hours: "9:00 AM - 5:00 PM (Open seasonally from late May)"
+      },
+      {
+        id: "act-6-sapporo-5",
+        time: "03:15 PM",
+        title: "Sunset Drive back to Sapporo",
+        category: "Logistics",
+        desc: "",
+        icon: "Car",
+        price: "Expressway Tolls (~¥1,900)",
+        hours: "24/7"
+      },
+      {
+        id: "act-6-sapporo-6",
+        time: "04:30 PM",
+        title: "Sapporo Beer Museum",
+        category: "Sightseeing",
+        desc: "Step inside Japan's sole museum dedicated entirely to the history and science of brewing beer. Tour the spectacular Meiji heritage brick building, browse ancient draft labels, and purchase iconic tasting flights of Sapporo Classic and historical Kaitakushi beers.",
+        url: "https://www.sapporobeer.jp/brewery/s_museum/",
+        icon: "Camera",
+        img: "https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?auto=format&fit=crop&w=500&q=80",
+        price: "Free Admission (Self-guided, tasting flights ~¥400)",
+        hours: "11:00 AM - 6:00 PM",
+        gear: "Valid ID card for age-restricted beer tasting"
+      },
+      {
+        id: "act-6-sapporo-7",
+        time: "06:00 PM",
         title: "Sapporo Beer Garden (Jingisukan Lamb BBQ)",
         category: "Food",
         desc: "Indulge in Sapporo's most famous culinary specialty—Genghis Khan (freshly grilled mutton/lamb BBQ) cooked on star-shaped metal domes. Housed in a gorgeous, historic red-brick hall built in 1890 with giant copper brewing kettles.",
@@ -468,17 +608,14 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         gear: "Clothing covers (provided at tables) as the sizzling stone grills release fine mist."
       },
       {
-        id: "act-6-sapporo-3",
-        time: "03:30 PM",
-        title: "Sapporo Beer Museum",
-        category: "Sightseeing",
-        desc: "Step inside Japan's sole museum dedicated entirely to the history and science of brewing beer. Tour the spectacular Meiji heritage brick building, browse ancient draft labels, and purchase iconic tasting flights of Sapporo Classic and historical Kaitakushi beers.",
-        url: "https://www.sapporobeer.jp/brewery/s_museum/",
-        icon: "Camera",
-        img: "https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?auto=format&fit=crop&w=500&q=80",
-        price: "Free Admission (Self-guided, tasting flights ~¥400)",
-        hours: "11:00 AM - 6:00 PM",
-        gear: "Valid ID card for age-restricted beer tasting"
+        id: "act-6-sapporo-8",
+        time: "08:15 PM",
+        title: "Return to Chitose Hotel",
+        category: "Logistics",
+        desc: "Drive safely back south to your hotel in Chitose to unpack and rest.",
+        icon: "Car",
+        price: "Free",
+        hours: "24/7"
       }
     ]
   },

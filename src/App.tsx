@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Calendar,
@@ -10,9 +10,7 @@ import {
   Compass,
   CheckCircle2,
   AlertCircle,
-  NotebookPen,
   Plus,
-  Trash2,
   ListTodo,
   Info,
   Thermometer,
@@ -25,8 +23,11 @@ import {
   Type,
   X,
   Maximize2,
+  Utensils,
+  ShoppingBag,
+  Car,
 } from "lucide-react";
-import { Activity, TripNote } from "./types";
+import { Activity } from "./types";
 import { INITIAL_ITINERARY } from "./data";
 import MapView from "./components/MapView";
 import GalleryView from "./components/GalleryView";
@@ -495,18 +496,12 @@ export default function App() {
   );
    const [activeDay, setActiveDay] = useState<number>(0); // 0 = All Days continuous feed
   const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({
-    "day-6-sapporo": true, // Start Day 6 Sapporo City option collapsed by default
+    "day-6-lake-toya": true, // Start Day 6 Lake Toya option collapsed by default
   });
   const [completedActivities, setCompletedActivities] = useState<string[]>([]);
   const [expandedAlternatives, setExpandedAlternatives] = useState<Record<string, boolean>>({});
-  const [notes, setNotes] = useState<TripNote[]>([]);
   const [isTanukikojiMapOpen, setIsTanukikojiMapOpen] = useState(false);
-
-  // Note form fields
-  const [noteTitle, setNoteTitle] = useState("");
-  const [noteContent, setNoteContent] = useState("");
-  const [noteTime, setNoteTime] = useState("09:00 AM");
-  const [noteFormDay, setNoteFormDay] = useState<number>(1);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   // Text Scaling Settings
   const [textSizeScale, setTextSizeScale] = useState<number>(() => {
@@ -547,11 +542,6 @@ export default function App() {
       if (storedCompleted) {
         setCompletedActivities(JSON.parse(storedCompleted));
       }
-
-      const storedNotes = localStorage.getItem("hokkaido_trip_notes");
-      if (storedNotes) {
-        setNotes(JSON.parse(storedNotes));
-      }
     } catch (e) {
       console.error("Local storage lookup failed", e);
     }
@@ -588,39 +578,6 @@ export default function App() {
     }
   };
 
-  const handleAddNote = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!noteTitle.trim() || !noteContent.trim()) return;
-
-    const targetDay = activeDay === 0 ? noteFormDay : activeDay;
-
-    const newNote: TripNote = {
-      id: `note-${Date.now()}`,
-      day: targetDay,
-      time: noteTime,
-      title: noteTitle,
-      content: noteContent,
-      createdAt: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-
-    const updatedNotes = [newNote, ...notes];
-    setNotes(updatedNotes);
-    localStorage.setItem("hokkaido_trip_notes", JSON.stringify(updatedNotes));
-
-    // Reset inputs
-    setNoteTitle("");
-    setNoteContent("");
-  };
-
-  const handleClearNote = (id: string) => {
-    const updatedNotes = notes.filter((n) => n.id !== id);
-    setNotes(updatedNotes);
-    localStorage.setItem("hokkaido_trip_notes", JSON.stringify(updatedNotes));
-  };
-
   const currentTimelineData =
     INITIAL_ITINERARY.find((d) => d.day === activeDay) || INITIAL_ITINERARY[0];
   const allActivitiesList = INITIAL_ITINERARY.flatMap((d) => d.activities);
@@ -632,10 +589,6 @@ export default function App() {
     totalActivitiesCount > 0
       ? Math.round((currentCompletedCount / totalActivitiesCount) * 100)
       : 0;
-
-  // Render lists of notes for the current active day (or all if activeDay is 0)
-  const filteredNotes =
-    activeDay === 0 ? notes : notes.filter((n) => n.day === activeDay);
 
   // Collect packing tips for the selected day based on activities
   const activeDayGears = currentTimelineData.activities
@@ -755,7 +708,7 @@ export default function App() {
               {/* Day Selector Sidebar Column */}
               <div className="lg:col-span-4 lg:sticky lg:top-[160px] h-fit space-y-6">
                 {/* Day selector layout with Continuous feed option */}
-                <div className="bg-white rounded-2xl border border-brand-container p-5 shadow-xs">
+                <div className="bg-white rounded-2xl border border-brand-container p-3 mb-2 shadow-xs">
                   <div className="flex items-center gap-1.5 mb-4 text-brand-primary">
                     <ListTodo className="w-4.5 h-4.5" />
                     <h3 className="font-sans text-xs font-bold tracking-widest uppercase">
@@ -800,7 +753,6 @@ export default function App() {
                             id={`day-select-${dayNum}`}
                             onClick={() => {
                               setActiveDay(dayNum);
-                              setNoteFormDay(dayNum);
                             }}
                             className={`aspect-square rounded-xl flex flex-col items-center justify-center relative cursor-pointer group transition-all border ${
                               isActive
@@ -835,9 +787,6 @@ export default function App() {
                       <div className="flex items-start gap-3 text-sm">
                         <MapPin className="w-4.5 h-4.5 text-red-500 shrink-0 mt-0.5" />
                         <div>
-                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">
-                            Expedition Path
-                          </span>
                           <span className="text-brand-text font-bold text-xs sm:text-sm">
                             Chitose • Otaru • Sapporo • Biei • Jozankei • Lake
                             Toya
@@ -848,9 +797,6 @@ export default function App() {
                       <div className="flex items-start gap-3 text-sm">
                         <Hotel className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
                         <div>
-                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">
-                            Total Accommodations
-                          </span>
                           <span className="text-brand-text font-bold text-xs sm:text-sm">
                             Traditional Ryokan &amp; Scenic Wilderness Stays
                           </span>
@@ -860,9 +806,6 @@ export default function App() {
                       <div className="flex items-start gap-3 text-sm">
                         <Thermometer className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
                         <div>
-                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">
-                            Spring Climate Scale
-                          </span>
                           <span className="text-brand-text text-xs font-semibold leading-relaxed">
                             High temps ranging from 8°C to 18°C
                           </span>
@@ -874,9 +817,6 @@ export default function App() {
                       <div className="flex items-center gap-3 text-sm">
                         <MapPin className="w-4.5 h-4.5 text-red-500 shrink-0" />
                         <div>
-                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">
-                            Sector Area
-                          </span>
                           <span className="text-brand-text font-bold text-xs sm:text-sm">
                             {currentTimelineData.location}
                           </span>
@@ -886,9 +826,6 @@ export default function App() {
                       <div className="flex items-center gap-3 text-sm">
                         <Hotel className="w-4.5 h-4.5 text-indigo-500 shrink-0" />
                         <div>
-                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">
-                            Stay Accommodation
-                          </span>
                           <span className="text-brand-text font-bold text-xs sm:text-sm">
                             {currentTimelineData.sleep}
                           </span>
@@ -898,9 +835,6 @@ export default function App() {
                       <div className="flex items-center gap-3 text-sm">
                         <Thermometer className="w-4.5 h-4.5 text-amber-600 shrink-0" />
                         <div>
-                          <span className="text-[10px] font-bold text-brand-text-muted uppercase block leading-tight">
-                            Expected Weather
-                          </span>
                           <span className="text-brand-text text-xs font-semibold leading-relaxed">
                             {currentTimelineData.weather}
                           </span>
@@ -911,7 +845,7 @@ export default function App() {
                 </div>
 
                 {/* Packing and Outfit Advisor Column */}
-                <div className="bg-brand-secondary-bg/25 border border-brand-secondary/20 rounded-2xl p-5 shadow-xs">
+                <div className="bg-brand-secondary-bg/25 border border-brand-secondary/20 rounded-2xl p-3 mb-0 shadow-xs">
                   <div className="flex items-center gap-1.5 mb-3 text-brand-secondary-text">
                     <Luggage className="w-4.5 h-4.5" />
                     <h4 className="font-sans text-xs font-bold tracking-widest uppercase">
@@ -1002,143 +936,53 @@ export default function App() {
                     </>
                   )}
                 </div>
-
-                {/* Notepad for Day specific logs */}
-                <div className="bg-white rounded-2xl border border-brand-container p-5 shadow-xs">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-1.5 text-brand-primary">
-                      <NotebookPen className="w-4.5 h-4.5" />
-                      <h4 className="font-sans text-xs font-bold tracking-widest uppercase">
-                        {activeDay === 0
-                          ? "Travel Pad (Add Observations)"
-                          : `Travel Pad (Day ${activeDay})`}
-                      </h4>
-                    </div>
-                    <span className="bg-brand-primary-bg text-brand-primary-text font-bold font-mono text-[10px] px-2 py-0.5 rounded-md">
-                      {filteredNotes.length} LOGS
-                    </span>
-                  </div>
-
-                  <form onSubmit={handleAddNote} className="space-y-3">
-                    <div className="grid grid-cols-3 gap-2">
-                      <input
-                        type="text"
-                        placeholder="Log title..."
-                        required
-                        value={noteTitle}
-                        onChange={(e) => setNoteTitle(e.target.value)}
-                        className="col-span-2 text-xs bg-brand-container-low border border-brand-outline-variant/40 rounded-lg p-2 focus:outline-hidden focus:border-brand-primary transition-all font-semibold"
-                      />
-                      <select
-                        value={noteTime}
-                        onChange={(e) => setNoteTime(e.target.value)}
-                        className="col-span-1 text-[11px] bg-brand-container-low border border-brand-outline-variant/40 rounded-lg p-1 px-1.5 focus:outline-hidden font-bold"
-                      >
-                        <option value="08:00 AM">08:00 AM</option>
-                        <option value="11:00 AM">11:00 AM</option>
-                        <option value="02:00 PM">02:00 PM</option>
-                        <option value="05:00 PM">05:00 PM</option>
-                        <option value="08:00 PM">08:00 PM</option>
-                      </select>
-                    </div>
-
-                    <div className="flex gap-2">
-                      {/* Dropdown for noteDay selection if All Days Master Feed is active */}
-                      {activeDay === 0 && (
-                        <select
-                          value={noteFormDay}
-                          onChange={(e) =>
-                            setNoteFormDay(parseInt(e.target.value))
-                          }
-                          className="text-[11px] bg-brand-container-low border border-brand-outline-variant/40 rounded-lg p-1.5 px-2.5 focus:outline-hidden font-bold shrink-0 text-brand-primary"
-                        >
-                          {[1, 2, 3, 4, 5, 6, 7].map((d) => (
-                            <option key={d} value={d}>
-                              Day {d}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-
-                      <textarea
-                        placeholder="Observation details..."
-                        rows={2}
-                        required
-                        value={noteContent}
-                        onChange={(e) => setNoteContent(e.target.value)}
-                        className="w-full text-xs bg-brand-container-low border border-brand-outline-variant/40 rounded-lg p-2 focus:outline-hidden focus:border-brand-primary transition-all font-sans"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full bg-brand-primary hover:bg-brand-primary-light text-white font-bold text-xs py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>
-                        {activeDay === 0
-                          ? `Add Log to Day ${noteFormDay}`
-                          : `Add Observation`}
-                      </span>
-                    </button>
-                  </form>
-
-                  {/* List of active day observations */}
-                  <div className="mt-5 space-y-3 max-h-[220px] overflow-y-auto pr-1">
-                    <AnimatePresence initial={false}>
-                      {filteredNotes.map((note) => (
-                        <motion.div
-                          key={note.id}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="bg-brand-container-low p-3 rounded-lg border border-brand-outline-variant/20 flex justify-between items-start"
-                        >
-                          <div className="space-y-1 pr-2">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="bg-slate-400/25 text-slate-800 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-sm">
-                                {note.time}
-                              </span>
-                              {activeDay === 0 && (
-                                <span className="bg-brand-primary/10 text-brand-primary font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-sm">
-                                  DAY {note.day}
-                                </span>
-                              )}
-                              <span className="text-xs font-bold text-brand-text line-clamp-1">
-                                {note.title}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-brand-text-muted leading-relaxed font-sans font-medium">
-                              {note.content}
-                            </p>
-                          </div>
-
-                          <button
-                            onClick={() => handleClearNote(note.id)}
-                            className="text-brand-text-muted hover:text-red-500 font-bold p-1 rounded-sm hover:bg-white cursor-pointer transition-all shrink-0"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-
-                    {filteredNotes.length === 0 && (
-                      <p className="text-[10px] text-center italic text-brand-text-muted py-3">
-                        No custom notes written yet. Fill the box to log sights.
-                      </p>
-                    )}
-                  </div>
-                </div>
               </div>
 
               {/* Main Timeline Column */}
-              <div className="lg:col-span-8 space-y-8">
+              <div className="lg:col-span-8 space-y-6">
+                {/* Visual Category Filter Bar */}
+                <div className="bg-white rounded-2xl border border-brand-container p-3 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="shrink-0">
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-brand-primary-light block">
+                      Explore Stops
+                    </span>
+                    <span className="text-sm font-bold text-brand-text">
+                      Filter by Activity Type
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
+                    {[
+                      { id: "all", label: "All", icon: Calendar },
+                      { id: "sightseeing", label: "Sightseeing", icon: Compass },
+                      { id: "food", label: "Food", icon: Utensils },
+                      { id: "shopping", label: "Shopping", icon: ShoppingBag },
+                      { id: "activity", label: "Activity", icon: Car },
+                    ].map((tab) => {
+                      const Icon = tab.icon;
+                      const isActive = selectedCategory === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setSelectedCategory(tab.id)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                            isActive
+                              ? "bg-brand-primary text-white border-brand-primary shadow-xs scale-[1.02]"
+                              : "bg-slate-50 hover:bg-white text-brand-text-muted hover:text-brand-text border-slate-200 hover:border-slate-350"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {activeDay === 0 ? (
                   /* RENDER ALL DAYS CONTINUOUSLY */
                   <div className="space-y-12">
                     {/* Section Header */}
-                    <div className="bg-white rounded-2xl border border-brand-container p-6 sm:p-8 shadow-xs">
+                    <div className="bg-white rounded-2xl border border-brand-container px-4 py-1.5 mb-1.5 shadow-xs">
                       <span className="text-[10px] sm:text-xs font-bold text-brand-primary tracking-widest uppercase">
                         7-Day Expedition Feed
                       </span>
@@ -1156,6 +1000,22 @@ export default function App() {
                     {INITIAL_ITINERARY.map((dayData) => {
                       const dayKey = dayData.id || `day-${dayData.day}`;
                       const isCollapsed = collapsedDays[dayKey];
+                      
+                      // Filter activities based on selected category
+                      const filteredActivities = dayData.activities.filter((act) => {
+                        if (selectedCategory === "all") return true;
+                        if (selectedCategory === "sightseeing") return act.category === "Sightseeing";
+                        if (selectedCategory === "shopping") return act.category === "Shopping";
+                        if (selectedCategory === "food") return act.category === "Food";
+                        if (selectedCategory === "activity") return act.category === "Logistics";
+                        return true;
+                      });
+
+                      // Skip rendering this day if filtered and no activities match
+                      if (selectedCategory !== "all" && filteredActivities.length === 0) {
+                        return null;
+                      }
+
                       return (
                         <div key={dayKey} className="space-y-6">
                           {/* Day Banner Card */}
@@ -1166,7 +1026,7 @@ export default function App() {
                                 [dayKey]: !prev[dayKey],
                               }));
                             }}
-                            className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs cursor-pointer hover:bg-brand-primary-bg/35 transition-all select-none group"
+                            className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-3 mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs cursor-pointer hover:bg-brand-primary-bg/35 transition-all select-none group"
                           >
                             <div>
                               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -1201,7 +1061,7 @@ export default function App() {
                                 {isCollapsed ? (
                                   <>
                                     <Plus className="w-3.5 h-3.5 text-brand-primary" />
-                                    <span>Expand Stops (+ {dayData.activities.length})</span>
+                                    <span>Expand Stops (+ {filteredActivities.length})</span>
                                   </>
                                 ) : (
                                   <>
@@ -1221,16 +1081,16 @@ export default function App() {
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-4 overflow-hidden"
+                                className="space-y-2 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-4 overflow-hidden"
                               >
-                            {dayData.activities.map((act) => {
+                            {filteredActivities.map((act) => {
                               const isCompleted = completedActivities.includes(
                                 act.id,
                               );
                               return (
                                 <div
                                   key={act.id}
-                                  className={`bg-white rounded-2xl border transition-all p-5 sm:p-6 relative ${
+                                  className={`bg-white rounded-2xl border transition-all p-3 relative ${
                                     isCompleted
                                       ? "border-emerald-300 opacity-80 shadow-xs"
                                       : "border-brand-container hover:border-brand-primary/20 shadow-sm"
@@ -1526,8 +1386,8 @@ export default function App() {
                   /* RENDER DETAILED SELECTED SINGLE DAY */
                   <div className="space-y-6">
                     {/* Header info card */}
-                    <div className="bg-white rounded-2xl border border-brand-container p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
-                      <div>
+                    <div className="bg-white rounded-2xl border border-brand-container px-4 py-1.5 mb-1.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
+                      <div className="mb-1">
                         <span className="text-[10px] font-bold text-brand-primary tracking-widest uppercase">
                           Focused Day View
                         </span>
@@ -1545,23 +1405,23 @@ export default function App() {
                           </span>
                         </p>
                       </div>
-                      <div className="bg-amber-100 border border-amber-200 p-2.5 px-4 rounded-xl shrink-0 flex items-center gap-2">
-                        <Thermometer className="w-4.5 h-4.5 text-amber-700 font-bold" />
-                        <div>
-                          <span className="block text-[9px] font-bold text-amber-800 uppercase tracking-wider">
-                            Climate Note
-                          </span>
-                          <span className="text-xs sm:text-sm font-bold text-amber-900">
-                            {currentTimelineData.weather.split(".")[0]}
-                          </span>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Loop through options/timelines for this selected day */}
                     {INITIAL_ITINERARY.filter((d) => d.day === activeDay).map((dayData) => {
                       const dayKey = dayData.id || `day-${dayData.day}`;
                       const isCollapsed = collapsedDays[dayKey];
+                      
+                      // Filter activities based on selected category
+                      const filteredDayActivities = dayData.activities.filter((act) => {
+                        if (selectedCategory === "all") return true;
+                        if (selectedCategory === "sightseeing") return act.category === "Sightseeing";
+                        if (selectedCategory === "shopping") return act.category === "Shopping";
+                        if (selectedCategory === "food") return act.category === "Food";
+                        if (selectedCategory === "activity") return act.category === "Logistics";
+                        return true;
+                      });
+
                       return (
                         <div key={dayKey} className="space-y-4">
                           {/* Option Header Button */}
@@ -1572,7 +1432,7 @@ export default function App() {
                                 [dayKey]: !prev[dayKey],
                               }));
                             }}
-                            className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-4 sm:p-5 flex justify-between items-center cursor-pointer hover:bg-brand-primary-bg/35 transition-all select-none group"
+                            className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-3 mb-2 flex justify-between items-center cursor-pointer hover:bg-brand-primary-bg/35 transition-all select-none group"
                           >
                             <div className="flex items-center gap-2.5 flex-wrap">
                               {dayData.optionName ? (
@@ -1592,7 +1452,7 @@ export default function App() {
                               {isCollapsed ? (
                                 <>
                                   <Plus className="w-3.5 h-3.5 text-brand-primary" />
-                                  <span>Expand stops ({dayData.activities.length})</span>
+                                  <span>Expand stops ({filteredDayActivities.length})</span>
                                 </>
                               ) : (
                                 <>
@@ -1611,9 +1471,19 @@ export default function App() {
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-2 overflow-hidden pb-4"
+                                className="space-y-2 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-2 overflow-hidden pb-4"
                               >
-                                {dayData.activities.map((act, actIdx) => {
+                                {filteredDayActivities.length === 0 ? (
+                                  <div className="bg-slate-50 border border-dashed border-slate-200/80 rounded-2xl p-6 text-center select-none">
+                                    <p className="text-xs font-semibold text-brand-text-muted">
+                                      No {selectedCategory !== "activity" ? selectedCategory : "activity type"} stops scheduled on this track.
+                                    </p>
+                                    <p className="text-[10px] text-slate-450 mt-1">
+                                      Choose another filter tab above or select another Day model.
+                                    </p>
+                                  </div>
+                                ) : (
+                                  filteredDayActivities.map((act, actIdx) => {
                                   const isCompleted = completedActivities.includes(
                                     act.id,
                                   );
@@ -1626,7 +1496,7 @@ export default function App() {
                               duration: 0.35,
                               delay: actIdx * 0.08,
                             }}
-                            className={`bg-white rounded-2xl border transition-all p-5 sm:p-6 relative ${
+                            className={`bg-white rounded-2xl border transition-all p-3 relative ${
                               isCompleted
                                 ? "border-emerald-300 opacity-80 shadow-xs"
                                 : "border-brand-container hover:border-brand-primary/40 shadow-sm"
@@ -1906,8 +1776,9 @@ export default function App() {
                             </AnimatePresence>
                           </motion.div>
                         );
-                      })}
-                              </motion.div>
+                      })
+                    )}
+                  </motion.div>
                             )}
                           </AnimatePresence>
                         </div>
