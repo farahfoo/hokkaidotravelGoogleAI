@@ -1,5 +1,17 @@
 export type ActivityCategory = 'Sightseeing' | 'Food' | 'Shopping' | 'Logistics';
 
+export interface AlternateActivity {
+  id: string;
+  time: string;
+  title: string;
+  desc: string;
+  price?: string;
+  hours?: string;
+  gear?: string;
+  img?: string;
+  url?: string;
+}
+
 export interface Activity {
   id: string;
   time: string;
@@ -13,10 +25,14 @@ export interface Activity {
   isCompleted?: boolean;
   price?: string;
   hours?: string;
+  alternatives?: AlternateActivity[];
+  isTanukikoji?: boolean;
 }
 
 export interface DayTimeline {
   day: number;
+  id?: string;
+  optionName?: string;
   date: string;
   location: string;
   sleep: string;

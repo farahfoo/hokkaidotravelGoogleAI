@@ -38,7 +38,25 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         gear: "Medium-weight jacket or light down vest",
         img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDRBaehCMYIl93qx5oqyKcKGvEtIjf8Hxp0pFVs-AgvLaWKZPKj_rxwp_6pE68ZxLqvos50bz5nduRuyLrEFIhEDt9vnFot6JeN_obC_8WzdeC2_PAS4qXTUpCjyEEvUUx20hiFmbXVBY4R7VBrzvb5FzivBiHq0FmIaySO91ZdiEzKisl5pdvOeeugNJnU0VN7o_mKQCdXCV-rGZgqPZFNuLL0alIBZN3JcViDLWNqt7hQW8xt46IEc1JF82yXumzOFXqjdQIfJhA",
         price: "Free",
-        hours: "24/7"
+        hours: "24/7",
+        alternatives: [
+          {
+            id: "act-1-3-alt-1",
+            time: "08:30 PM",
+            title: "Otaru Beer Hall (Soko No.1)",
+            desc: "Enjoy local German-style draft beer fresh from the copper tank inside a historic stone warehouse along the canal.",
+            price: "¥1,000 - ¥2,500",
+            img: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=500&q=80"
+          },
+          {
+            id: "act-1-3-alt-2",
+            time: "09:00 PM",
+            title: "Otaru Music Box Museum (Main Hall)",
+            desc: "Browse thousands of delicate music boxes in an atmospheric brick building dating back to 1912.",
+            price: "Free Admission",
+            img: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=500&q=80"
+          }
+        ]
       }
     ]
   },
@@ -71,7 +89,50 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         gear: "Windbreaker/Waterproof shell required. Sneakers with grip",
         img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCpq1LC-0t9wzZfiMcvJwwHqbEG3MC5E_ikspgu0SjJskKt9DMt2mLem3u0-tDEIDH1bsBdFNVlOXb-xXI6DeuuG2sqg49SAHBoOFMDxD97NYcE0F-eWGS_2Bi84iVK6XYIzdd9cgcPdwf40Q0F9JKP8B-Ry7SD2XUc_HxyDTz1SMTgythc1AF_4WBdt5ppoGrUjm48h2kufB8H-uhJquLJtoIfqGwrvCAupiWCBzq8qxCLGRcqKBVSqyp5KB33kUvdYgmgVkOxL-o",
         price: "¥6,000",
-        hours: "8:30 AM - 5:30 PM"
+        hours: "8:30 AM - 5:30 PM",
+        alternatives: [
+          {
+            id: "act-2-2-alt-1",
+            time: "11:00 AM",
+            title: "Otaru Herring Mansion (Nishin Goten)",
+            desc: "Visit the historic timber mansion detailing the prosperous herring fishing era of the Meiji period.",
+            price: "¥300",
+            hours: "09:00 AM - 05:00 PM",
+            img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=500&q=80"
+          },
+          {
+            id: "act-2-2-alt-2",
+            time: "11:30 AM",
+            title: "Mt. Kenashi Lookout Stroll",
+            desc: "Drive up Mt. Kenashi for premium high-vantage views of Ishikari Bay and the winding mountain highway.",
+            price: "Free",
+            img: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&q=80"
+          },
+          {
+            id: "act-2-2-alt-3",
+            time: "12:00 PM",
+            title: "Sakaimachi Street (indoor/outdoor mix)",
+            desc: "Browse glassware shops, LeTAO cheesecake café, and music box stores. If rain starts, duck into shops and cafés.",
+            price: "Free (shopping varies)",
+            img: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=500&q=80"
+          },
+          {
+            id: "act-2-2-alt-4",
+            time: "12:30 PM",
+            title: "Otaru Music Box Museum (indoor)",
+            desc: "Safe indoor option if showers develop. Explore thousands of music boxes and craft your own.",
+            price: "Free Admission",
+            img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=500&q=80"
+          },
+          {
+            id: "act-2-2-alt-5",
+            time: "01:00 PM",
+            title: "Kitaichi Glassworks & Café (indoor)",
+            desc: "Oil‑lamp café creates a warm atmosphere. Perfect midday stop, especially if weather is damp.",
+            price: "¥500 - ¥1,500",
+            img: "https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=500&q=80"
+          }
+        ]
       },
       {
         id: "act-2-3",
@@ -87,13 +148,37 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
       },
       {
         id: "act-2-4",
-        time: "07:00 PM",
-        title: "Drive to Sapporo",
+        time: "05:30 PM",
+        title: "Drive from Otaru to Sapporo",
         category: "Logistics",
-        desc: "Evening drive to the vibrant capital city.",
+        desc: "Set out on the 45-minute drive from coastal Otaru to Sapporo via the Sasson Expressway, taking the quick Sapporo-Kita exit. An easy, pleasant drive transitioning into the city.",
         icon: "Car",
-        price: "not available",
-        hours: "not available"
+        price: "Tolled (~¥1,220)",
+        hours: "24/7"
+      },
+      {
+        id: "act-2-5",
+        time: "06:30 PM",
+        title: "Heisei period Poplar Avenue detour",
+        category: "Sightseeing",
+        desc: "Take a scenic drop-by at the northern edge of the Hokkaido University campus. Enjoy walking along this majestic row of towering poplar trees planted in 2000 (Heisei period) to ensure the university's legendary tree-lined legacy continues. Exceptionally peaceful during late-afternoon twilight.",
+        icon: "Camera",
+        img: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=500&q=80",
+        price: "Free Admission",
+        hours: "Open 24/7 (Outdoor)",
+        gear: "Camera for photos, light layers as the evening temperature drops."
+      },
+      {
+        id: "act-2-6",
+        time: "07:15 PM",
+        title: "Hokkaido University Ginkgo Avenue",
+        category: "Sightseeing",
+        desc: "Stroll down the famous 380-meter avenue lined with 70 spectacular Ginkgo trees leading to the Kita 13-jo gate. While globally famous for its electric golden color in autumn, it forms a majestic, fresh green canopy during spring and summer—a tranquil natural cathedral in the city center.",
+        icon: "Compass",
+        img: "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=500&q=80",
+        price: "Free Admission",
+        hours: "Open 24/7 (Outdoor)",
+        gear: "Comfortable shoes for walking the 380-meter spectacular path."
       }
     ]
   },
@@ -115,7 +200,18 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         gear: "City casual. Light layers for indoor malls",
         img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCe2eUoLOb0ykP1lXPeQON1xubCVuwnEq--8b-GON1nAt_EsAXWdM4jHyr0dfHjZiRYKQsqHPpJPLmMzE61QscINZurOlc27q00I4ef9IGbCHES0pldP_RvWZXzhMKUCxN_zUC7EhbRbo4kL8qOiuY732F374CQzJD5ccbX8NfwV5HvftEJuYM5DhhYzOZRf6RgMcFEDyP2HkRez-Dm8CxXOvZY7xu1Gs7M-_dyDmZ2OB9ltpOUIQFpe8vXB6AOhu9RWVMctZVSzjk",
         price: "¥1,000",
-        hours: "9:00 AM - 10:00 PM"
+        hours: "9:00 AM - 10:00 PM",
+        alternatives: [
+          {
+            id: "act-3-1-alt-1",
+            time: "10:00 AM",
+            title: "Odori Park Garden Walk",
+            desc: "Walk along the lush borders, fountains, and beautiful lilac gardens of the Odori linear park.",
+            price: "Free",
+            hours: "24/7",
+            img: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=500&q=80"
+          }
+        ]
       },
       {
         id: "act-3-2",
@@ -134,10 +230,12 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         title: "Tanukikoji Shopping",
         category: "Shopping",
         desc: "Explore the historic 1km-long shopping arcade. Great for local souvenirs.",
+        img: "https://images.unsplash.com/photo-1542931287-023b922fa89b?auto=format&fit=crop&w=500&q=80",
         icon: "ShoppingBag",
         gear: "City casual",
         price: "Free",
-        hours: "24/7"
+        hours: "24/7",
+        isTanukikoji: true
       },
       {
         id: "act-3-4",
@@ -230,7 +328,19 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
       },
       {
         id: "act-5-2",
-        time: "01:00 PM",
+        time: "12:00 PM",
+        title: "Satsuraku Milk no Sato",
+        category: "Food",
+        desc: "Located right next to Moerenuma Park. Enjoy their famous farm-fresh Hokkaido milk soft-serve ice cream, check out the pasture, view the dairy cows, and explore this lush countryside farm experience right in Sapporo's backyard.",
+        icon: "Utensils",
+        img: "https://images.unsplash.com/photo-1527018601619-a508a2be00cd?auto=format&fit=crop&w=500&q=80",
+        price: "Free Admission (Soft-serve ~¥400)",
+        hours: "9:00 AM - 5:00 PM",
+        gear: "Sunglasses, light windbreaker as open farm breezes are refreshingly cool."
+      },
+      {
+        id: "act-5-3",
+        time: "01:30 PM",
         title: "Shiroi Koibito Park",
         category: "Shopping",
         desc: "Chocolate factory tour and fairytale architecture.",
@@ -241,8 +351,21 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         hours: "10:00 AM - 6:00 PM"
       },
       {
-        id: "act-5-3",
-        time: "06:00 PM",
+        id: "act-5-4",
+        time: "05:00 PM",
+        title: "Mount Moiwa Ropeway",
+        category: "Sightseeing",
+        desc: "Ascend Mount Moiwa via the scenic ropeway and unique mini-cable car to experience one of Hokkaido's three most spectacular night views. See the entire glittering city grid of Sapporo spread out underneath you from the active summit observation deck. Beautiful during dusk and nightfall.",
+        url: "https://mt-moiwa.jp/en/",
+        icon: "TrendingUp",
+        img: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=500&q=80",
+        price: "¥2,100 (Roundtrip)",
+        hours: "10:30 AM - 10:00 PM",
+        gear: "Warm layers or windbreaker—the observation deck gets quite windy and chilly at night."
+      },
+      {
+        id: "act-5-5",
+        time: "07:00 PM",
         title: "Ryokan Check-in",
         category: "Logistics",
         desc: "Traditional Japanese inn arrival in the Onsen town. Forest views from your room.",
@@ -253,8 +376,8 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
         hours: "not available"
       },
       {
-        id: "act-5-4",
-        time: "07:30 PM",
+        id: "act-5-6",
+        time: "08:15 PM",
         title: "Wagyu Kaiseki Dinner",
         category: "Food",
         desc: "Multi-course traditional dinner with Zen aesthetic.",
@@ -266,6 +389,8 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
   },
   {
     day: 6,
+    id: "day-6-lake-toya",
+    optionName: "Lake Toya / Chitose Option",
     date: "May 29",
     location: "Lake Toya / Chitose",
     sleep: "Chitose Hotel",
@@ -309,6 +434,55 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
     ]
   },
   {
+    day: 6,
+    id: "day-6-sapporo",
+    optionName: "Sapporo City Option",
+    date: "May 29",
+    location: "Sapporo City Alternative",
+    sleep: "Chitose Hotel",
+    weather: "18°C (64°F). Sunny, pleasant.",
+    activities: [
+      {
+        id: "act-6-sapporo-1",
+        time: "10:00 AM",
+        title: "Historical Village of Hokkaido",
+        category: "Sightseeing",
+        desc: "Explore a massive open-air museum preserving roughly 60 historic buildings from Meiji to Showa period Hokkaido. Witness frontier town streetscapes, agricultural villages, horse-drawn trolleys, and rustic architecture up-close.",
+        url: "https://www.kaitaku.or.jp/en/",
+        icon: "Building",
+        img: "https://images.unsplash.com/photo-1542044896530-05d85be9b11a?auto=format&fit=crop&w=500&q=80",
+        price: "¥830",
+        hours: "9:00 AM - 5:00 PM",
+        gear: "Comfortable shoes for walking (large open-air terrain)"
+      },
+      {
+        id: "act-6-sapporo-2",
+        time: "12:30 PM",
+        title: "Sapporo Beer Garden (Jingisukan Lamb BBQ)",
+        category: "Food",
+        desc: "Indulge in Sapporo's most famous culinary specialty—Genghis Khan (freshly grilled mutton/lamb BBQ) cooked on star-shaped metal domes. Housed in a gorgeous, historic red-brick hall built in 1890 with giant copper brewing kettles.",
+        icon: "Utensils",
+        img: "https://images.unsplash.com/photo-1534080391025-a17e83543906?auto=format&fit=crop&w=500&q=80",
+        price: "¥3,500 - ¥5,000 (Lunch sets/All-you-can-eat available)",
+        hours: "11:30 AM - 9:00 PM",
+        gear: "Clothing covers (provided at tables) as the sizzling stone grills release fine mist."
+      },
+      {
+        id: "act-6-sapporo-3",
+        time: "03:30 PM",
+        title: "Sapporo Beer Museum",
+        category: "Sightseeing",
+        desc: "Step inside Japan's sole museum dedicated entirely to the history and science of brewing beer. Tour the spectacular Meiji heritage brick building, browse ancient draft labels, and purchase iconic tasting flights of Sapporo Classic and historical Kaitakushi beers.",
+        url: "https://www.sapporobeer.jp/brewery/s_museum/",
+        icon: "Camera",
+        img: "https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?auto=format&fit=crop&w=500&q=80",
+        price: "Free Admission (Self-guided, tasting flights ~¥400)",
+        hours: "11:00 AM - 6:00 PM",
+        gear: "Valid ID card for age-restricted beer tasting"
+      }
+    ]
+  },
+  {
     day: 7,
     date: "May 30",
     location: "Departure",
@@ -341,6 +515,31 @@ export const INITIAL_ITINERARY: DayTimeline[] = [
       },
       {
         id: "act-7-3",
+        time: "02:15 PM",
+        title: "Murakami Farm",
+        category: "Sightseeing",
+        desc: "A sprawling boutique family farm located near Chitose. Engage in hands-on farm activities, play with friendly farm animals, enjoy fresh milk, and indulge in homemade stone-baked pizzas or signature soft cream surrounded by flower gardens.",
+        icon: "Compass",
+        img: "https://images.unsplash.com/photo-1547036967-23d11a0e0775?auto=format&fit=crop&w=500&q=80",
+        price: "Free Entry (Animal feed ~¥100)",
+        hours: "10:00 AM - 5:00 PM",
+        gear: "Outdoor casual footwear fit for a direct rustic farm visit."
+      },
+      {
+        id: "act-7-4",
+        time: "03:45 PM",
+        title: "Chitose Salmon Aquarium",
+        category: "Sightseeing",
+        desc: "Japan's largest freshwater aquarium. Peek directly into the flowing bed of the Chitose River from the unique underwater observation room. Witness wild salmon swimming upstream and view vibrant freshwater fish tanks close up.",
+        url: "https://chitose-aq.jp/",
+        icon: "Waves",
+        img: "https://images.unsplash.com/photo-1535591273668-578e31182c4f?auto=format&fit=crop&w=500&q=80",
+        price: "¥800",
+        hours: "9:00 AM - 5:00 PM",
+        gear: "Standard casual clothing, camera for photos."
+      },
+      {
+        id: "act-7-5",
         time: "07:00 PM",
         title: "Flight Departure",
         category: "Logistics",

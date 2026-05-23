@@ -18,15 +18,19 @@ import {
   Thermometer,
   Luggage,
   ChevronRight,
+  ChevronDown,
   CheckSquare,
   Square,
   Share2,
   Type,
+  X,
+  Maximize2,
 } from "lucide-react";
 import { Activity, TripNote } from "./types";
 import { INITIAL_ITINERARY } from "./data";
 import MapView from "./components/MapView";
 import GalleryView from "./components/GalleryView";
+import TanukikojiVectorMap from "./components/TanukikojiVectorMap";
 
 const getCategoryBadgeColor = (category: Activity["category"]) => {
   switch (category) {
@@ -376,13 +380,127 @@ const IconsList = {
   ),
 };
 
+const getMapsQuery = (actTitle: string, dayLocation: string): string => {
+  const titleLower = actTitle.toLowerCase();
+
+  if (titleLower.includes("arrival in hokkaido")) {
+    return "New Chitose Airport";
+  }
+  if (titleLower.includes("flight departure")) {
+    return "New Chitose Airport";
+  }
+  if (
+    titleLower.includes("hotel nord otaru check-in") ||
+    titleLower.includes("hotel nord otaru")
+  ) {
+    return "Hotel Nord Otaru";
+  }
+  if (titleLower.includes("night canal walk")) {
+    return "Otaru Canal";
+  }
+  if (
+    titleLower.includes("blue cave tour") ||
+    titleLower.includes("blue cave")
+  ) {
+    return "Ryugu Cruise, Otaru";
+  }
+  if (titleLower.includes("sankaku market sushi")) {
+    return "Sankaku Market, Otaru";
+  }
+  if (
+    titleLower.includes("mt. tengu ropeway") ||
+    titleLower.includes("tengu")
+  ) {
+    return "Tenguyama Ropeway, Otaru";
+  }
+  if (titleLower.includes("drive to sapporo")) {
+    return "Sapporo Station";
+  }
+  if (titleLower.includes("sapporo tv tower")) {
+    return "Sapporo TV Tower";
+  }
+  if (
+    titleLower.includes("nijo market sushi") ||
+    titleLower.includes("nijo market")
+  ) {
+    return "Nijo Market, Sapporo";
+  }
+  if (
+    titleLower.includes("tanukikoji shopping") ||
+    titleLower.includes("tanukikoji")
+  ) {
+    return "Tanukikoji Shopping Street, Sapporo";
+  }
+  if (titleLower.includes("ishizaki wagyu dinner")) {
+    return "Beef Ishizaki, Sapporo";
+  }
+  if (
+    titleLower.includes("furano & biei day tour") ||
+    titleLower.includes("furano & biei")
+  ) {
+    return "Shikisai-no-oka, Biei";
+  }
+  if (titleLower.includes("blue pond")) {
+    return "Shirogane Blue Pond, Biei";
+  }
+  if (
+    titleLower.includes("asahiyama zoo option") ||
+    titleLower.includes("asahiyama zoo")
+  ) {
+    return "Asahiyama Zoo, Asahikawa";
+  }
+  if (
+    titleLower.includes("nankouen wagyu") ||
+    titleLower.includes("nankouen")
+  ) {
+    return "Nankouen, Susukino, Sapporo";
+  }
+  if (titleLower.includes("moerenuma park")) {
+    return "Moerenuma Park, Sapporo";
+  }
+  if (titleLower.includes("shiroi koibito park")) {
+    return "Shiroi Koibito Park, Sapporo";
+  }
+  if (titleLower.includes("ryokan check-in")) {
+    return "Jozankei Onsen, Sapporo";
+  }
+  if (titleLower.includes("wagyu kaiseki dinner")) {
+    return "Jozankei Onsen, Sapporo";
+  }
+  if (titleLower.includes("mt. usu ropeway") || titleLower.includes("usu")) {
+    return "Usuzan Ropeway, Soubetsu";
+  }
+  if (
+    titleLower.includes("sendouan wagyu") ||
+    titleLower.includes("sendouan")
+  ) {
+    return "Sendouan, Toyako";
+  }
+  if (titleLower.includes("lake shikotsu") || titleLower.includes("shikotsu")) {
+    return "Lake Shikotsu, Chitose";
+  }
+  if (titleLower.includes("aeon mall chitose")) {
+    return "Aeon Mall Chitose";
+  }
+  if (titleLower.includes("royce' chocolate world")) {
+    return "Royce' Chocolate World, New Chitose Airport";
+  }
+
+  return `${actTitle}, ${dayLocation}, Hokkaido, Japan`;
+};
+
 export default function App() {
   const [currentTab, setCurrentTab] = useState<"itinerary" | "map" | "gallery">(
     "itinerary",
   );
-  const [activeDay, setActiveDay] = useState<number>(0); // 0 = All Days continuous feed
+   const [activeDay, setActiveDay] = useState<number>(0); // 0 = All Days continuous feed
+  const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({
+    "day-6-sapporo": true, // Start Day 6 Sapporo City option collapsed by default
+  });
   const [completedActivities, setCompletedActivities] = useState<string[]>([]);
+  const [expandedAlternatives, setExpandedAlternatives] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState<TripNote[]>([]);
+  const [isTanukikojiMapOpen, setIsTanukikojiMapOpen] = useState(false);
 
   // Note form fields
   const [noteTitle, setNoteTitle] = useState("");
@@ -668,18 +786,21 @@ export default function App() {
 
                     {/* Day-by-Day Select Grid */}
                     <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-                      {INITIAL_ITINERARY.map((d) => {
-                        const isActive = activeDay === d.day;
-                        const isDayFullyScouted = d.activities.every((act) =>
-                          completedActivities.includes(act.id),
+                      {Array.from(new Set(INITIAL_ITINERARY.map((d) => d.day))).map((dayNum) => {
+                        const dayTracks = INITIAL_ITINERARY.filter((d) => d.day === dayNum);
+                        const isActive = activeDay === dayNum;
+                        const isDayFullyScouted = dayTracks.every((track) =>
+                          track.activities.every((act) =>
+                            completedActivities.includes(act.id),
+                          ),
                         );
                         return (
                           <button
-                            key={d.day}
-                            id={`day-select-${d.day}`}
+                            key={dayNum}
+                            id={`day-select-${dayNum}`}
                             onClick={() => {
-                              setActiveDay(d.day);
-                              setNoteFormDay(d.day);
+                              setActiveDay(dayNum);
+                              setNoteFormDay(dayNum);
                             }}
                             className={`aspect-square rounded-xl flex flex-col items-center justify-center relative cursor-pointer group transition-all border ${
                               isActive
@@ -691,7 +812,7 @@ export default function App() {
                               Day
                             </span>
                             <span className="text-sm font-mono leading-none font-bold">
-                              {d.day}
+                              {dayNum}
                             </span>
 
                             {/* Checked indicator */}
@@ -1033,10 +1154,20 @@ export default function App() {
 
                     {/* Loop through each day */}
                     {INITIAL_ITINERARY.map((dayData) => {
+                      const dayKey = dayData.id || `day-${dayData.day}`;
+                      const isCollapsed = collapsedDays[dayKey];
                       return (
-                        <div key={dayData.day} className="space-y-6">
+                        <div key={dayKey} className="space-y-6">
                           {/* Day Banner Card */}
-                          <div className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
+                          <div
+                            onClick={() => {
+                              setCollapsedDays((prev) => ({
+                                ...prev,
+                                [dayKey]: !prev[dayKey],
+                              }));
+                            }}
+                            className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs cursor-pointer hover:bg-brand-primary-bg/35 transition-all select-none group"
+                          >
                             <div>
                               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                                 <span className="bg-brand-primary text-white text-[10px] font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-md">
@@ -1045,25 +1176,53 @@ export default function App() {
                                 <span className="text-xs sm:text-sm font-semibold text-brand-primary-light font-mono">
                                   • {dayData.date}
                                 </span>
+                                {dayData.optionName && (
+                                  <span className="bg-indigo-600 text-white text-[9px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-md uppercase">
+                                    Option: {dayData.optionName.replace(" Option", "")}
+                                  </span>
+                                )}
                               </div>
                               <h3 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-brand-primary-text">
                                 {dayData.location}
                               </h3>
                             </div>
 
-                            <div className="flex flex-col sm:items-end gap-1 text-slate-700 font-sans">
-                              <span className="font-bold text-brand-primary text-xs bg-white/80 px-2.5 py-1 rounded-lg border border-brand-outline-variant/30">
-                                🏢 Stay: {dayData.sleep}
-                              </span>
-                              <span className="text-xs sm:text-sm font-bold text-brand-text-muted font-mono whitespace-nowrap mt-1 pb-0.5 flex items-center gap-1">
-                                🌡️ Spring Climate:{" "}
-                                {dayData.weather.split(".")[0]}
-                              </span>
+                            <div className="flex flex-col sm:items-end gap-1.5 text-slate-700 font-sans w-full sm:w-auto">
+                              <div className="flex flex-wrap sm:flex-col gap-1.5 sm:items-end">
+                                <span className="font-bold text-brand-primary text-[11px] bg-white/85 px-2.5 py-1 rounded-lg border border-brand-outline-variant/30">
+                                  🏢 Stay: {dayData.sleep}
+                                </span>
+                                <span className="text-xs sm:text-[11px] font-bold text-brand-text-muted font-mono whitespace-nowrap bg-white/50 px-2.5 py-1 rounded-lg border border-brand-outline-variant/15 flex items-center gap-1">
+                                  🌡️ Spring Climate:{" "}
+                                  {dayData.weather.split(".")[0]}
+                                </span>
+                              </div>
+                              <div className="text-xs font-mono font-bold flex items-center gap-1.5 mt-0.5 text-brand-primary group-hover:text-brand-primary-light transition-colors">
+                                {isCollapsed ? (
+                                  <>
+                                    <Plus className="w-3.5 h-3.5 text-brand-primary" />
+                                    <span>Expand Stops (+ {dayData.activities.length})</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="w-3.5 h-3.5 text-brand-primary rotate-180" />
+                                    <span>Collapse Stops</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
 
                           {/* Activities timeline stream for this day */}
-                          <div className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-4">
+                          <AnimatePresence initial={false}>
+                            {!isCollapsed && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-4 overflow-hidden"
+                              >
                             {dayData.activities.map((act) => {
                               const isCompleted = completedActivities.includes(
                                 act.id,
@@ -1075,6 +1234,10 @@ export default function App() {
                                     isCompleted
                                       ? "border-emerald-300 opacity-80 shadow-xs"
                                       : "border-brand-container hover:border-brand-primary/20 shadow-sm"
+                                  } ${
+                                    act.alternatives && act.alternatives.length > 0
+                                      ? "pb-14 sm:pb-6 pr-5 sm:pr-14"
+                                      : ""
                                   }`}
                                 >
                                   {/* Connector Circle Dot */}
@@ -1091,13 +1254,26 @@ export default function App() {
                                   <div className="flex flex-col sm:flex-row gap-5 items-start">
                                     {/* Image Thumbnail preview if matches */}
                                     {act.img && (
-                                      <div className="w-full sm:w-[130px] aspect-video sm:aspect-square shrink-0 rounded-xl overflow-hidden bg-brand-container-low border border-brand-container">
+                                      <div
+                                        onClick={() => act.isTanukikoji && setIsTanukikojiMapOpen(true)}
+                                        className={`w-full sm:w-[130px] aspect-video sm:aspect-square shrink-0 rounded-xl overflow-hidden bg-brand-container-low border border-brand-container relative ${
+                                          act.isTanukikoji ? "cursor-pointer group shadow-sm hover:shadow-md hover:border-indigo-300" : ""
+                                        }`}
+                                      >
                                         <img
                                           src={act.img}
                                           alt={act.title}
                                           referrerPolicy="no-referrer"
-                                          className="w-full h-full object-cover transition-transform duration-550 hover:scale-105"
+                                          className={`w-full h-full object-cover transition-transform duration-550 ${
+                                            act.isTanukikoji ? "group-hover:scale-105" : "hover:scale-105"
+                                          }`}
                                         />
+                                        {act.isTanukikoji && (
+                                          <div className="absolute inset-x-0 bottom-0 bg-slate-900/65 backdrop-blur-xs py-1 px-2 text-[9px] font-mono font-bold text-white text-center flex items-center justify-center gap-1 opacity-90 group-hover:opacity-100 group-hover:bg-indigo-900/75 transition-all">
+                                            <Maximize2 className="w-2.5 h-2.5 text-amber-300" />
+                                            <span>🔍 Tap to Zoom Map</span>
+                                          </div>
+                                        )}
                                       </div>
                                     )}
 
@@ -1199,7 +1375,7 @@ export default function App() {
                                             Map:
                                           </span>
                                           <a
-                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.title + ", Hokkaido, Japan")}`}
+                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapsQuery(act.title, dayData.location))}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-brand-primary hover:text-brand-primary-light hover:underline font-bold inline-flex items-center"
@@ -1210,7 +1386,7 @@ export default function App() {
                                             |
                                           </span>
                                           <a
-                                            href={`https://maps.apple.com/?q=${encodeURIComponent(act.title + ", Hokkaido, Japan")}`}
+                                            href={`https://maps.apple.com/?q=${encodeURIComponent(getMapsQuery(act.title, dayData.location))}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-brand-primary hover:text-brand-primary-light hover:underline font-bold inline-flex items-center"
@@ -1218,6 +1394,16 @@ export default function App() {
                                             Apple
                                           </a>
                                         </span>
+
+                                        {act.isTanukikoji && (
+                                          <button
+                                            onClick={() => setIsTanukikojiMapOpen(true)}
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 text-[11px] hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm border border-indigo-700/20 active:translate-y-px"
+                                          >
+                                            <Compass className="w-3.5 h-3.5" />
+                                            <span>🗺️ Open Zoomable Walking Map</span>
+                                          </button>
+                                        )}
 
                                         {act.url && (
                                           <a
@@ -1233,10 +1419,105 @@ export default function App() {
                                       </div>
                                     </div>
                                   </div>
+
+                                  {/* Rainbow Expand Button */}
+                                  {act.alternatives && act.alternatives.length > 0 && (
+                                    <button
+                                      id={`expand-btn-${act.id}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setExpandedAlternatives((prev) => ({
+                                          ...prev,
+                                          [act.id]: !prev[act.id],
+                                        }));
+                                      }}
+                                      className="absolute bottom-4 right-4 sm:bottom-5 sm:right-5 p-2 rounded-full cursor-pointer shadow-md hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center bg-gradient-to-r from-red-500 via-orange-400 via-yellow-400 via-green-500 via-teal-400 via-blue-500 via-indigo-550 to-purple-500 text-white z-10"
+                                      title={
+                                        expandedAlternatives[act.id]
+                                          ? "Hide alternative activities"
+                                          : "See alternative activities"
+                                      }
+                                    >
+                                      <ChevronDown
+                                        className={`w-4 h-4 transition-transform duration-300 ${
+                                          expandedAlternatives[act.id] ? "rotate-180" : ""
+                                        }`}
+                                        style={{ width: "16px", height: "16px" }}
+                                      />
+                                    </button>
+                                  )}
+
+                                  {/* Alternatives Container */}
+                                  <AnimatePresence>
+                                    {expandedAlternatives[act.id] &&
+                                      act.alternatives &&
+                                      act.alternatives.length > 0 && (
+                                        <motion.div
+                                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                          animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+                                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                          transition={{ duration: 0.3 }}
+                                          className="overflow-hidden border-t border-slate-100 pt-4 pl-4 sm:pl-6 border-l-2 border-indigo-100/60 ml-1 sm:ml-3"
+                                        >
+                                          <div className="text-[11px] font-mono font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-indigo-500 animate-pulse"></span>
+                                            Alternative Stop Options
+                                          </div>
+                                          <div className="grid grid-cols-1 gap-3">
+                                            {act.alternatives.map((alt) => (
+                                              <div
+                                                key={alt.id}
+                                                className="p-4 rounded-xl bg-slate-50 border border-slate-100/70 font-sans flex flex-col gap-3 shadow-2xs hover:shadow-xs hover:border-slate-200 transition-all"
+                                              >
+                                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                                  <span className="font-mono text-xs font-bold text-brand-primary-light bg-slate-100 px-2.5 py-0.5 rounded-md">
+                                                    ⏱️ {alt.time}
+                                                  </span>
+                                                  {alt.price && (
+                                                    <span className="text-[10px] sm:text-xs font-semibold bg-brand-primary-bg text-brand-primary px-2.5 py-0.5 rounded-md border border-brand-primary/10">
+                                                      Fee: {alt.price}
+                                                    </span>
+                                                  )}
+                                                </div>
+
+                                                <div className="flex flex-col sm:flex-row gap-4 items-start">
+                                                  {alt.img && (
+                                                    <div className="w-full sm:w-[110px] aspect-video sm:aspect-square shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60 shadow-xs">
+                                                      <img
+                                                        src={alt.img}
+                                                        alt={alt.title}
+                                                        referrerPolicy="no-referrer"
+                                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                                      />
+                                                    </div>
+                                                  )}
+                                                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                                                    <h4 className="font-serif text-sm sm:text-base font-bold text-brand-primary-text leading-snug">
+                                                      {alt.title}
+                                                    </h4>
+                                                    <p className="text-xs text-brand-text-muted mt-1 leading-relaxed">
+                                                      {alt.desc}
+                                                    </p>
+                                                    {alt.hours && (
+                                                      <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5 mt-1.5">
+                                                        <Clock className="w-3.5 h-3.5 text-slate-350 shrink-0" />
+                                                        <span>Hours: {alt.hours}</span>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </motion.div>
+                                      )}
+                                  </AnimatePresence>
                                 </div>
                               );
                             })}
-                          </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       );
                     })}
@@ -1251,8 +1532,7 @@ export default function App() {
                           Focused Day View
                         </span>
                         <h2 className="font-serif text-2xl sm:text-3.5xl font-extrabold text-brand-text tracking-tight mt-1">
-                          Day {currentTimelineData.day}:{" "}
-                          {currentTimelineData.location}
+                          Day {activeDay}: {activeDay === 6 ? "Lake Toya / Sapporo Options" : currentTimelineData.location}
                         </h2>
                         <p className="text-xs sm:text-sm text-brand-text-muted font-sans font-bold flex items-center gap-1.5 mt-1.5">
                           <Clock className="w-4 h-4 text-brand-primary-light shrink-0" />
@@ -1261,8 +1541,7 @@ export default function App() {
                             <b className="text-brand-text">
                               {currentTimelineData.date}
                             </b>{" "}
-                            • {currentTimelineData.activities.length} Guided
-                            Stops
+                            • {activeDay === 6 ? "2 Routes Available" : `${currentTimelineData.activities.length} Guided Stops`}
                           </span>
                         </p>
                       </div>
@@ -1279,13 +1558,66 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Timeline card items list */}
-                    <div className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container">
-                      {currentTimelineData.activities.map((act, actIdx) => {
-                        const isCompleted = completedActivities.includes(
-                          act.id,
-                        );
-                        return (
+                    {/* Loop through options/timelines for this selected day */}
+                    {INITIAL_ITINERARY.filter((d) => d.day === activeDay).map((dayData) => {
+                      const dayKey = dayData.id || `day-${dayData.day}`;
+                      const isCollapsed = collapsedDays[dayKey];
+                      return (
+                        <div key={dayKey} className="space-y-4">
+                          {/* Option Header Button */}
+                          <div
+                            onClick={() => {
+                              setCollapsedDays((prev) => ({
+                                ...prev,
+                                [dayKey]: !prev[dayKey],
+                              }));
+                            }}
+                            className="bg-brand-primary-bg/25 border border-brand-primary-bg/40 rounded-2xl p-4 sm:p-5 flex justify-between items-center cursor-pointer hover:bg-brand-primary-bg/35 transition-all select-none group"
+                          >
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              {dayData.optionName ? (
+                                <span className="bg-indigo-600 text-white text-[9px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-md uppercase">
+                                  Option: {dayData.optionName.replace(" Option", "")}
+                                </span>
+                              ) : (
+                                <span className="bg-brand-primary text-white text-[9px] font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-md uppercase">
+                                  Main Track
+                                </span>
+                              )}
+                              <h3 className="font-serif text-lg sm:text-xl font-bold tracking-tight text-brand-primary-text">
+                                {dayData.location}
+                              </h3>
+                            </div>
+                            <div className="text-xs font-mono font-bold flex items-center gap-1.5 text-brand-primary group-hover:text-brand-primary-light transition-colors">
+                              {isCollapsed ? (
+                                <>
+                                  <Plus className="w-3.5 h-3.5 text-brand-primary" />
+                                  <span>Expand stops ({dayData.activities.length})</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-3.5 h-3.5 text-brand-primary rotate-180" />
+                                  <span>Collapse</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Activities stream list */}
+                          <AnimatePresence initial={false}>
+                            {!isCollapsed && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="space-y-6 relative pl-4 sm:pl-6 border-l-2 border-brand-container ml-4 sm:ml-6 mt-2 overflow-hidden pb-4"
+                              >
+                                {dayData.activities.map((act, actIdx) => {
+                                  const isCompleted = completedActivities.includes(
+                                    act.id,
+                                  );
+                                  return (
                           <motion.div
                             key={act.id}
                             initial={{ opacity: 0, x: -10 }}
@@ -1294,10 +1626,14 @@ export default function App() {
                               duration: 0.35,
                               delay: actIdx * 0.08,
                             }}
-                            className={`bg-white rounded-2xl border transition-all p-5 sm:p-6 ${
+                            className={`bg-white rounded-2xl border transition-all p-5 sm:p-6 relative ${
                               isCompleted
                                 ? "border-emerald-300 opacity-80 shadow-xs"
                                 : "border-brand-container hover:border-brand-primary/40 shadow-sm"
+                            } border-brand-container hover:border-brand-primary/40 shadow-sm ${
+                              act.alternatives && act.alternatives.length > 0
+                                ? "pb-14 sm:pb-6 pr-5 sm:pr-14"
+                                : ""
                             }`}
                           >
                             {/* Connector dot */}
@@ -1314,13 +1650,26 @@ export default function App() {
                             <div className="flex flex-col sm:flex-row gap-5 items-start">
                               {/* Image Thumbnail */}
                               {act.img && (
-                                <div className="w-full sm:w-[150px] aspect-video sm:aspect-square shrink-0 rounded-xl overflow-hidden bg-brand-container-low border border-brand-container">
+                                <div
+                                  onClick={() => act.isTanukikoji && setIsTanukikojiMapOpen(true)}
+                                  className={`w-full sm:w-[150px] aspect-video sm:aspect-square shrink-0 rounded-xl overflow-hidden bg-brand-container-low border border-brand-container relative ${
+                                    act.isTanukikoji ? "cursor-pointer group shadow-sm hover:shadow-md hover:border-indigo-300" : ""
+                                  }`}
+                                >
                                   <img
                                     src={act.img}
                                     alt={act.title}
                                     referrerPolicy="no-referrer"
-                                    className="w-full h-full object-cover"
+                                    className={`w-full h-full object-cover transition-transform duration-550 ${
+                                      act.isTanukikoji ? "group-hover:scale-105" : "hover:scale-105"
+                                    }`}
                                   />
+                                  {act.isTanukikoji && (
+                                    <div className="absolute inset-x-0 bottom-0 bg-slate-900/65 backdrop-blur-xs py-1 px-2 text-[9px] font-mono font-bold text-white text-center flex items-center justify-center gap-1 opacity-90 group-hover:opacity-100 group-hover:bg-indigo-900/75 transition-all">
+                                      <Maximize2 className="w-2.5 h-2.5 text-amber-300" />
+                                      <span>🔍 Tap to Zoom Map</span>
+                                    </div>
+                                  )}
                                 </div>
                               )}
 
@@ -1344,7 +1693,7 @@ export default function App() {
                                       onClick={() =>
                                         handleShareActivity(
                                           act,
-                                          currentTimelineData.location,
+                                          dayData.location,
                                         )
                                       }
                                       className="text-xs font-bold px-2 py-1 sm:px-3 rounded-lg border bg-brand-container-low text-brand-text-muted border-brand-outline-variant/30 hover:bg-white hover:text-brand-text transition-all cursor-pointer flex items-center gap-1.5"
@@ -1420,7 +1769,7 @@ export default function App() {
                                       Map:
                                     </span>
                                     <a
-                                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.title + ", Hokkaido, Japan")}`}
+                                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapsQuery(act.title, dayData.location))}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-brand-primary hover:text-brand-primary-light hover:underline font-bold inline-flex items-center"
@@ -1429,7 +1778,7 @@ export default function App() {
                                     </a>
                                     <span className="text-slate-300">|</span>
                                     <a
-                                      href={`https://maps.apple.com/?q=${encodeURIComponent(act.title + ", Hokkaido, Japan")}`}
+                                      href={`https://maps.apple.com/?q=${encodeURIComponent(getMapsQuery(act.title, dayData.location))}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-brand-primary hover:text-brand-primary-light hover:underline font-bold inline-flex items-center"
@@ -1437,6 +1786,16 @@ export default function App() {
                                       Apple
                                     </a>
                                   </span>
+
+                                  {act.isTanukikoji && (
+                                    <button
+                                      onClick={() => setIsTanukikojiMapOpen(true)}
+                                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 text-[11px] hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm border border-indigo-700/20 active:translate-y-px"
+                                    >
+                                      <Compass className="w-3.5 h-3.5" />
+                                      <span>🗺️ Open Zoomable Walking Map</span>
+                                    </button>
+                                  )}
 
                                   {act.url && (
                                     <a
@@ -1452,10 +1811,108 @@ export default function App() {
                                 </div>
                               </div>
                             </div>
+
+                            {/* Rainbow Expand Button */}
+                            {act.alternatives && act.alternatives.length > 0 && (
+                              <button
+                                id={`expand-btn-focused-${act.id}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedAlternatives((prev) => ({
+                                    ...prev,
+                                    [act.id]: !prev[act.id],
+                                  }));
+                                }}
+                                className="absolute bottom-4 right-4 sm:bottom-5 sm:right-5 p-2 rounded-full cursor-pointer shadow-md hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center bg-gradient-to-r from-red-500 via-orange-400 via-yellow-400 via-green-500 via-teal-400 via-blue-500 via-indigo-550 to-purple-500 text-white z-10"
+                                title={
+                                  expandedAlternatives[act.id]
+                                    ? "Hide alternative activities"
+                                    : "See alternative activities"
+                                }
+                              >
+                                <ChevronDown
+                                  className={`w-4 h-4 transition-transform duration-300 ${
+                                    expandedAlternatives[act.id] ? "rotate-180" : ""
+                                  }`}
+                                  style={{ width: "16px", height: "16px" }}
+                                />
+                              </button>
+                            )}
+
+                            {/* Alternatives Container */}
+                            <AnimatePresence>
+                              {expandedAlternatives[act.id] &&
+                                act.alternatives &&
+                                act.alternatives.length > 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                    animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+                                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="overflow-hidden border-t border-slate-100 pt-4 pl-4 sm:pl-6 border-l-2 border-indigo-100/60 ml-1 sm:ml-3"
+                                  >
+                                    <div className="text-[11px] font-mono font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-indigo-500 animate-pulse"></span>
+                                      Alternative Stop Options
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-3">
+                                      {act.alternatives.map((alt) => (
+                                        <div
+                                          key={alt.id}
+                                          className="p-4 rounded-xl bg-slate-50 border border-slate-100/70 font-sans flex flex-col gap-3 shadow-2xs hover:shadow-xs hover:border-slate-200 transition-all"
+                                        >
+                                          <div className="flex items-center justify-between flex-wrap gap-2">
+                                            <span className="font-mono text-xs font-bold text-brand-primary-light bg-slate-100 px-2.5 py-0.5 rounded-md font-bold">
+                                              ⏱️ {alt.time}
+                                            </span>
+                                            {alt.price && (
+                                              <span className="text-[10px] sm:text-xs font-semibold bg-brand-primary-bg text-brand-primary px-2.5 py-0.5 rounded-md border border-brand-primary/10">
+                                                Fee: {alt.price}
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          <div className="flex flex-col sm:flex-row gap-4 items-start">
+                                            {alt.img && (
+                                              <div className="w-full sm:w-[110px] aspect-video sm:aspect-square shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60 shadow-xs">
+                                                <img
+                                                  src={alt.img}
+                                                  alt={alt.title}
+                                                  referrerPolicy="no-referrer"
+                                                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                                />
+                                              </div>
+                                            )}
+                                            <div className="flex-1 min-w-0 flex flex-col gap-1">
+                                              <h4 className="font-serif text-sm sm:text-base font-bold text-brand-primary-text leading-snug">
+                                                {alt.title}
+                                              </h4>
+                                              <p className="text-xs text-brand-text-muted mt-1 leading-relaxed md:text-sm">
+                                                {alt.desc}
+                                              </p>
+                                              {alt.hours && (
+                                                <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5 mt-1.5">
+                                                  <Clock className="w-3.5 h-3.5 text-slate-350 shrink-0" />
+                                                  <span>Hours: {alt.hours}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </motion.div>
+                                )}
+                            </AnimatePresence>
                           </motion.div>
                         );
                       })}
-                    </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1485,6 +1942,39 @@ export default function App() {
               transition={{ duration: 0.3 }}
             >
               <GalleryView />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Tanukikoji Interactive Map Modal Overlay */}
+        <AnimatePresence>
+          {isTanukikojiMapOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
+              onClick={() => setIsTanukikojiMapOpen(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, y: 15 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: 15 }}
+                transition={{ type: "spring", damping: 26, stiffness: 340 }}
+                className="bg-[#fafbff] w-full max-w-5xl rounded-3xl shadow-2xl border border-slate-200/50 overflow-hidden relative animate-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setIsTanukikojiMapOpen(false)}
+                  className="absolute top-4 right-4 z-40 bg-white hover:bg-slate-100 text-slate-700 w-9 h-9 border border-slate-200 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-all max-md:hidden z-50"
+                  title="Close Map"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="p-1 md:p-2 bg-slate-100/30">
+                  <TanukikojiVectorMap onClose={() => setIsTanukikojiMapOpen(false)} />
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
